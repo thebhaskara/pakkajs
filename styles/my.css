@@ -1,0 +1,14 @@
+/* Bhaskara css */
+
+body{
+	background-color: #eeeeee;
+}
+
+.ui.flowing.basic.admission.popup{
+	min-width: 500px;
+}
+
+.ui.menu .ui.dropdown .menu .active.item, 
+.ui.menu .ui.dropdown .menu .active.item:active{
+	border:none;
+}

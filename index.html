@@ -1,0 +1,25 @@
+<html lang="en">
+
+<head>
+    <!-- <link rel="stylesheet" href="bower_components/angular-material/angular-material.min.css"> -->
+    <link rel="stylesheet" href="bower_components/semantic-ui/dist/semantic.css">
+    <link rel="stylesheet" href="styles/my.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=RobotoDraft:300,400,500,700,400italic">
+    <meta name="viewport" content="initial-scale=1" />
+</head>
+
+<body ng-controller="FullPageCtrl">
+    <header dynamic="HeaderTemplate"></header>
+    <section class="ui container">
+        <div class="ui bottom attached segment">
+            <div ng-view></div>
+        </div>
+        <div class="ui bottom attached segment">
+            <input type="text" ng-model="MyService._name">
+            {{MyService._name}}
+        </div>
+    </section>
+    <script data-main="app/config" src="bower_components/requirejs/require.js"></script>
+</body>
+
+</html>
