@@ -26,6 +26,32 @@
         addClass(el, className);
     };
 
+    var property = function(key) {
+        return function(obj) {
+            return obj == null ? void 0 : obj[key];
+        };
+    };
+    var getLength = property('length');
+    var MAX_ARRAY_INDEX = Math.pow(2, 53) - 1;
+    var isArrayLike = function(collection) {
+        var length = getLength(collection);
+        return typeof length == 'number' && length >= 0 && length <= MAX_ARRAY_INDEX;
+    };
+    var each = function(obj, iteratee, context) {
+        var i, length;
+        if (isArrayLike(obj)) {
+            for (i = 0, length = obj.length; i < length; i++) {
+                iteratee(obj[i], i, obj);
+            }
+        } else {
+            var keys = _.keys(obj);
+            for (i = 0, length = keys.length; i < length; i++) {
+                iteratee(obj[keys[i]], keys[i], obj);
+            }
+        }
+        return obj;
+    };
+
     var MakeComponent = function(options) {
         var componentName = options.name ||
             'component-' + componentNameCounter++;
@@ -36,10 +62,14 @@
                 styleEl.innerHTML = options.css;
                 headEl.appendChild(styleEl);
             }
+            // making it work for only one time
             addStyleSheet = function() {};
         }
 
-
+        var binders = {};
+        this.addBinder = function(name, callback) {
+            binders[name] = callback;
+        }
 
         return function() {
             var that = this;
@@ -48,10 +78,22 @@
             var div = document.createElement('div');
 
             div.innerHTML = options.html || '<div></div>';
-            var $elements = that.$elements = div.children;
-            for (var i = 0; i < $elements.length; i++) {
-                addClass($elements[i], componentName);
-            }
+            var elements = that.$elements = div.children;
+
+            var bound = [];
+            // finish this afterwards
+            each(that.$elements, function(element) {
+                addClass(element, componentName);
+                each(binders, function(callback, name) {
+                    var els = element.querySelectorAll('[' + name + ']');
+                    each(els, function(el) {
+                        var funcName = element.getAttribute(name);
+                        var func = component[funcName];
+                        // finish this afterwards
+                    })
+                })
+            });
+
         }
     }
 
