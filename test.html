@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+
+<head>
+    <meta charset="utf-8" />
+    <title>The Bhaskara UI</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <meta content="" name="description" />
+    <meta content="" name="author" />
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+  <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+  <![endif]-->
+</head>
+
+<body>
+    <script src="src/MakeComponent.js"></script>
+    <script type="text/javascript">
+    var LoginComponent = MakeComponent({
+        name: 'login-component',
+        html: '<div>' +
+            '<label>Usename</label>' +
+            '<input type="text" bind-get="getUserName" bind-set="getUserName" >' +
+            '<label>Password</label>' +
+            '<input type="password" bind-get="getUserName" bind-set="getUserName" >' +
+            '</div>',
+        css: '.login-component{ padding:10px; } .login-component label{ display: block;}',
+        controller: function() {
+            var that = this;
+
+        }
+    });
+    var bodyEl = document.getElementsByTagName('body')[0];
+    var login = new LoginComponent();
+    var len = login.$elements.length;
+    for (var i = 0; i < len; i++) {
+        bodyEl.appendChild(login.$elements[i]);
+    }
+    </script>
+</body>
+
+</html>
