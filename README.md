@@ -14,4 +14,5 @@ for now see test.html for an example
 -make more required binders
 -make it independent of underscorejs
 -add proper documentation
+-make the css and html changeable after component is made
 -optimize the functions
