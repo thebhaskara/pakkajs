@@ -43,3 +43,8 @@ var SomeComponent = MakeComponent({
 });
 
 var sc = new SomeComponent();
+
+setTimeout(function() {
+    sc.destroy();
+
+}, 4000);

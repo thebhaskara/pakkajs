@@ -113,6 +113,7 @@
             };
 
             that.$propertyBindings = {};
+            that.$listeners = [];
 
             var elements = options.elements;
 
@@ -144,6 +145,20 @@
 
             // evaluate all bindings after controller initialization
             evaluatePropertyBindings(that);
+
+            that.destroy = function() {
+                each(that.$listeners, function(listener) {
+                    detachEvent(listener.event, listener.element, listener.handler, that);
+                });
+                delete that.$listeners;
+                each(that.$propertyBindings, function(bindings, prop) {
+                    delete that.$propertyBindings[prop];
+                });
+                each(that, function(val, key) {
+                    delete that[key];
+                })
+                delete that;
+            }
         }
     }
 
@@ -195,27 +210,51 @@
         });
     };
 
-    var attachEvent = MakeComponent.attachEvent = function(event, element, handler) {
+    var detachEvent = MakeComponent.detachEvent = function(event, element, handler, that) {
+        if (element.removeEventListener) { // DOM standard
+            detachEvent = function(event, element, handler, that) {
+                element.removeEventListener(event, handler, false);
+            }
+        } else if (element.detachEvent) { // IE
+            detachEvent = function(event, element, handler, that) {
+                element.detachEvent('on' + event, handler);
+            }
+        }
+        detachEvent(event, element, handler, that);
+    }
+
+    var attachEvent = MakeComponent.attachEvent = function(event, element, handler, that) {
         if (element.addEventListener) { // DOM standard
-            attachEvent = function(event, element, handler) {
+            attachEvent = function(event, element, handler, that) {
+                pushListener(event, element, handler, that);
                 element.addEventListener(event, handler, false)
             }
         } else if (element.attachEvent) { // IE
-            attachEvent = function(event, element, handler) {
+            attachEvent = function(event, element, handler, that) {
+                pushListener(event, element, handler, that);
                 element.attachEvent('on' + event, handler);
             }
         }
-        attachEvent(event, element, handler);
+        attachEvent(event, element, handler, that);
+    }
+    var pushListener = MakeComponent.pushListener = function(event, element, handler, that) {
+        that.$listeners.push({
+            element: element,
+            event: event,
+            handler: handler
+        })
     }
 
     var attachEvents = MakeComponent.attachEvents = function(element, that) {
-        each(eventsList, function(name) {
+        // to make the event list smaller, user can provide a custom list 
+        // at instance level or MakeComponent level
+        each(that.eventsList || MakeComponent.eventsList || eventsList, function(name) {
             var els = element.querySelectorAll('[' + name + '-handle]');
             each(els, function(el) {
                 var prop = el.getAttribute(name + '-handle');
                 MakeComponent.attachEvent(name, el, function(event) {
                     that[prop] && that[prop](event);
-                })
+                }, that)
             })
         });
     };
@@ -241,9 +280,9 @@
         var handler = function(event) {
             that.set(prop, event.target.value);
         }
-        attachEvent('change', el, handler);
-        attachEvent('keyup', el, handler);
-        attachEvent('paste', el, handler);
+        attachEvent('change', el, handler, that);
+        attachEvent('keyup', el, handler, that);
+        attachEvent('paste', el, handler, that);
         return function(value) {
             if (!isUndefined(value)) {
                 el.value = value;
