@@ -1,14 +1,21 @@
 # the bhaskara ui
 
 The idea is to provide few simple UI tools.
+Inspired by http://youmightnotneedjquery.com/ and angularjs v1
 
 ## MakeComponent
 
-this can create a component.
+This can glue html and javascript seamlessly (like angularjs version 1) (need to check if it is really as good as angularjs)
 
-code is very small so one can go through it to understand what it does.
+Code is very small and simple.
 
-for now see test.html for an example
+For now see test.html for an example
+
+### Advantages
+1. It is very light weight compared to any standard view-model kind of libraries.
+2. Handles many view-model glue scenarions.
+3. Simple to use.
+4. Helpful for component/modular/widget based development.
 
 ## Pending or ongoing activities
 * make more required binders
