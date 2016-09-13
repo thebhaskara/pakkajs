@@ -16,10 +16,10 @@ For now see test.html for an example
 2. Handles many view-model glue scenarions.
 3. Simple to use.
 4. Helpful for component/modular/widget based development.
+5. It is independent.
 
 ## Pending or ongoing activities
 * make more required binders
-* make it independent of underscorejs
 * add proper documentation
 * make the css and html changeable after component is made
 * optimize the functions

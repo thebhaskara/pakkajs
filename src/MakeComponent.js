@@ -10,10 +10,33 @@
 
     var componentNameCounter = 0,
         componentIdCounter = 0,
-        headEl = document.getElementsByTagName('head')[0],
-        each = _.each,
-        isUndefined = _.isUndefined,
-        isObject = _.isObject;
+        headEl = document.getElementsByTagName('head')[0];
+
+    // from underscorejs
+    var isUndefined = function(obj) {
+        return obj === void 0;
+    }
+
+    // from underscorejs
+    var isObject = function(obj) {
+        var type = typeof obj;
+        return type === 'function' || type === 'object' && !!obj;
+    }
+
+    // source https://github.com/toddmotto/foreach/blob/master/src/foreach.js
+    var each = function(collection, callback, scope) {
+        if (Object.prototype.toString.call(collection) === '[object Object]') {
+            for (var prop in collection) {
+                if (Object.prototype.hasOwnProperty.call(collection, prop)) {
+                    callback.call(scope, collection[prop], prop, collection);
+                }
+            }
+        } else {
+            for (var i = 0, len = collection.length; i < len; i++) {
+                callback.call(scope, collection[i], i, collection);
+            }
+        }
+    };
 
     var eventsList = [
         "abort", "beforecopy", "beforecut", "beforepaste",
@@ -46,13 +69,39 @@
         var componentName = options.name ||
             'component-' + componentNameCounter++;
 
+        // personal stylesheet adding function
+        // this would not work correctly outside of this scope 
+        var addStyleSheet = function(css, id, styleEl) {
+            if (isUndefined(styleEl)) {
+                styleEl = document.createElement('style');
+                styleEl.setAttribute('id', id);
+                headEl.appendChild(styleEl);
+            }
+            styleEl.innerHTML = css;
+            return styleEl;
+        };
+
+        var componentStyleElement;
 
         return function() {
 
-            addStyleSheet(options);
 
             var that = this,
+                instanceStyleElement,
                 properties = that.$properties = {};
+
+            that.$componentName = componentName;
+            that.$componentId = componentName + '-' + componentIdCounter++;
+
+            if (isUndefined(componentStyleElement)) {
+                componentStyleElement = addStyleSheet(options.css || '',
+                    componentName, componentStyleElement);
+            }
+
+            that.setCss = function(css) {
+                instanceStyleElement = addStyleSheet(css || '',
+                    that.$componentId, instanceStyleElement);
+            }
 
             that.get = function(prop) {
                 return properties[prop];
@@ -65,16 +114,23 @@
 
             that.$propertyBindings = {};
 
-            // setting elements
-            var div = document.createElement('div');
-            div.innerHTML = options.html || '<div></div>';
+            var elements = options.elements;
 
-            // just in case the internal elements are multiple
-            var elements = that.$elements = div.children;
+            if (isUndefined(elements)) {
+                // setting elements
+                var div = document.createElement('div');
+                div.innerHTML = options.html || '<div></div>';
+
+                elements = div.children;
+            }
+
+            that.$elements = elements;
+
             each(elements, function(element) {
 
                 // adding this components personalized class
                 addClass(element, componentName);
+                addClass(element, that.$componentId);
 
                 // generates property bindings
                 linkBinders(element, that);
@@ -104,17 +160,6 @@
                 bindingCallback(value);
             })
         }
-    }
-
-    // personal stylesheet adding function
-    var addStyleSheet = MakeComponent.addStyleSheet = function(options) {
-        if (options.css) {
-            var styleEl = document.createElement('style');
-            styleEl.innerHTML = options.css;
-            headEl.appendChild(styleEl);
-        }
-        // making it work for only one time per component
-        addStyleSheet = function() {};
     }
 
     // addClass function from youmightnotneedjquery.com
