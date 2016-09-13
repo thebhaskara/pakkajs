@@ -23,3 +23,4 @@ For now see test.html for an example
 * add proper documentation
 * make the css and html changeable after component is made
 * optimize the functions
+* make components like dropdown, table, toggle button, etc.
