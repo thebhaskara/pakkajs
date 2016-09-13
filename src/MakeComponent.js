@@ -8,47 +8,48 @@
     }
 }(this, function() {
 
-    var componentNameCounter = 0;
-    var componentIdCounter = 0;
-    //var bodyEl = document.getElementsByTagName('body')[0];
-    var headEl = document.getElementsByTagName('head')[0];
-    var each = _.each;
+    var componentNameCounter = 0,
+        componentIdCounter = 0,
+        headEl = document.getElementsByTagName('head')[0],
+        each = _.each,
+        isUndefined = _.isUndefined,
+        isObject = _.isObject;
 
-    var tempDiv = document.createElement('div');
-    var eventsList = ["abort", "beforecopy", "beforecut", "beforepaste", "blur", "cancel", "canplay", "canplaythrough", "change", "click", "close", "contextmenu", "copy", "cuechange", "cut", "dblclick", "drag", "dragend", "dragenter", "dragleave", "dragover", "dragstart", "drop", "durationchange", "emptied", "ended", "error", "focus", "input", "invalid", "keydown", "keypress", "keyup", "load", "loadeddata", "loadedmetadata", "loadstart", "mousedown", "mouseenter", "mouseleave", "mousemove", "mouseout", "mouseover", "mouseup", "mousewheel", "paste", "pause", "play", "playing", "progress", "ratechange", "reset", "resize", "scroll", "search", "seeked", "seeking", "select", "selectstart", "show", "stalled", "submit", "suspend", "timeupdate", "toggle", "volumechange", "waiting", "webkitfullscreenchange", "webkitfullscreenerror", "wheel"];
+    var eventsList = [
+        "abort", "beforecopy", "beforecut", "beforepaste",
+        "blur", "cancel", "canplay", "canplaythrough", "change", "click",
+        "close", "contextmenu", "copy", "cuechange", "cut", "dblclick",
+        "drag", "dragend", "dragenter", "dragleave", "dragover", "dragstart",
+        "drop", "durationchange", "emptied", "ended", "error", "focus",
+        "input", "invalid", "keydown", "keypress", "keyup", "load",
+        "loadeddata", "loadedmetadata", "loadstart", "mousedown", "mouseenter",
+        "mouseleave", "mousemove", "mouseout", "mouseover", "mouseup",
+        "mousewheel", "paste", "pause", "play", "playing", "progress",
+        "ratechange", "reset", "resize", "scroll", "search", "seeked",
+        "seeking", "select", "selectstart", "show", "stalled", "submit",
+        "suspend", "timeupdate", "toggle", "volumechange", "waiting",
+        "webkitfullscreenchange", "webkitfullscreenerror", "wheel"
+    ];
 
-    // addClass function from youmightnotneedjquery.com
-    var addClass = function(el, className) {
-        if (el.classList) {
-            addClass = function(el, className) {
-                el.classList.add(className);
-            }
+    var definitelyGetString = function(value) {
+        if (isUndefined(value)) {
+            return '';
+        } else if (isObject(value)) {
+            return JSON.stringify(value);
         } else {
-            addClass = function(el, className) {
-                el.className += ' ' + className;
-            }
+            return value;
         }
-        addClass(el, className);
-    };
+    }
+
 
     var MakeComponent = function(options) {
         var componentName = options.name ||
             'component-' + componentNameCounter++;
 
-        // personal stylesheet adding function
-        var addStyleSheet = function() {
-            if (options.css) {
-                var styleEl = document.createElement('style');
-                styleEl.innerHTML = options.css;
-                headEl.appendChild(styleEl);
-            }
-            // making it work for only one time per component
-            addStyleSheet = function() {};
-        }
 
         return function() {
 
-            addStyleSheet();
+            addStyleSheet(options);
 
             var that = this,
                 properties = that.$properties = {};
@@ -59,26 +60,10 @@
 
             that.set = function(prop, value) {
                 properties[prop] = value;
-                evaluatePropertyBindings(prop, value);
+                evaluatePropertyBindings(that, prop, value);
             };
 
-            var propertyBindings = that.$propertyBindings = {};
-
-            // binding evaluator
-            var evaluatePropertyBindings = function(prop, value) {
-                if (prop) {
-                    var bindingsList = propertyBindings[prop];
-                    each(bindingsList, function(bindingCallback) {
-                        bindingCallback(value);
-                    })
-                } else {
-                    // in case prop is not provided
-                    // evaluates everything
-                    each(propertyBindings, function(list, propName) {
-                        evaluatePropertyBindings(propName, that.get(propName));
-                    })
-                }
-            }
+            that.$propertyBindings = {};
 
             // setting elements
             var div = document.createElement('div');
@@ -92,23 +77,69 @@
                 addClass(element, componentName);
 
                 // generates property bindings
-                MakeComponent.linkBinders(element, that);
+                linkBinders(element, that);
 
                 // attaching known events
-                MakeComponent.attachEvents(element, that);
+                attachEvents(element, that);
             });
 
             // initializing the controller
             var component = new options.controller(that);
 
             // evaluate all bindings after controller initialization
-            evaluatePropertyBindings();
+            evaluatePropertyBindings(that);
         }
     }
 
+    // binding evaluator
+    var evaluatePropertyBindings = MakeComponent.evaluatePropertyBindings = function(that, prop, value) {
+        if (isUndefined(prop)) {
+            // in case prop is not provided
+            // evaluates everything
+            each(that.$propertyBindings, function(list, propName) {
+                evaluatePropertyBindings(that, propName, that.get(propName));
+            })
+        } else {
+            each(that.$propertyBindings[prop], function(bindingCallback) {
+                bindingCallback(value);
+            })
+        }
+    }
 
-    MakeComponent.linkBinders = function(element, that) {
-        each(MakeComponent.binders, function(callback, name) {
+    // personal stylesheet adding function
+    var addStyleSheet = MakeComponent.addStyleSheet = function(options) {
+        if (options.css) {
+            var styleEl = document.createElement('style');
+            styleEl.innerHTML = options.css;
+            headEl.appendChild(styleEl);
+        }
+        // making it work for only one time per component
+        addStyleSheet = function() {};
+    }
+
+    // addClass function from youmightnotneedjquery.com
+    var addClass = MakeComponent.addClass = function(el, className) {
+        if (el.classList) {
+            addClass = function(el, className) {
+                el.classList.add(className);
+            }
+        } else {
+            addClass = function(el, className) {
+                el.className += ' ' + className;
+            }
+        }
+        addClass(el, className);
+    };
+
+    // empty function from youmightnotneedjquery.com
+    var empty = MakeComponent.empty = function(el) {
+        while (el.firstChild) {
+            el.removeChild(el.firstChild);
+        }
+    };
+
+    var linkBinders = MakeComponent.linkBinders = function(element, that) {
+        each(binders, function(callback, name) {
             var els = element.querySelectorAll('[' + name + ']');
             each(els, function(el) {
                 var prop = el.getAttribute(name);
@@ -119,7 +150,7 @@
         });
     };
 
-    MakeComponent.attachEvent = function(event, element, handler) {
+    var attachEvent = MakeComponent.attachEvent = function(event, element, handler) {
         if (element.addEventListener) { // DOM standard
             attachEvent = function(event, element, handler) {
                 element.addEventListener(event, handler, false)
@@ -132,7 +163,7 @@
         attachEvent(event, element, handler);
     }
 
-    MakeComponent.attachEvents = function(element, that) {
+    var attachEvents = MakeComponent.attachEvents = function(element, that) {
         each(eventsList, function(name) {
             var els = element.querySelectorAll('[' + name + '-handle]');
             each(els, function(el) {
@@ -144,35 +175,44 @@
         });
     };
 
-    MakeComponent.binders = {};
-    MakeComponent.addBinder = function(name, callback) {
-        MakeComponent.binders[name] = callback;
+    var binders = MakeComponent.binders = {};
+    var addBinder = MakeComponent.addBinder = function(name, callback) {
+        binders[name] = callback;
     };
 
-    MakeComponent.addBinder('bind-text', function(el, prop, that) {
+    addBinder('bind-text', function(el, prop, that) {
         return function(value) {
-            el.innerText = value;
+            el.innerText = definitelyGetString(value);
         }
     });
 
-    MakeComponent.addBinder('bind-html', function(el, prop, that) {
+    addBinder('bind-html', function(el, prop, that) {
         return function(value) {
-            el.innerHTML = value;
+            el.innerHTML = definitelyGetString(value);
         }
     });
 
-    MakeComponent.addBinder('bind-property', function(el, prop, that) {
+    addBinder('bind-property', function(el, prop, that) {
         var handler = function(event) {
             that.set(prop, event.target.value);
         }
-        MakeComponent.attachEvent('change', el, handler);
-        MakeComponent.attachEvent('keydown', el, handler);
-        MakeComponent.attachEvent('paste', el, handler);
-        MakeComponent.attachEvent('blur', el, handler);
-        MakeComponent.attachEvent('focus', el, handler);
+        attachEvent('change', el, handler);
+        attachEvent('keyup', el, handler);
+        attachEvent('paste', el, handler);
         return function(value) {
-            if (el.value) {
+            if (!isUndefined(value)) {
                 el.value = value;
+            }
+        }
+    });
+
+    addBinder('bind-component', function(el, prop, that) {
+        return function(value) {
+            if (!isUndefined(value)) {
+                empty(el);
+                each(value.$elements, function(element) {
+                    el.appendChild(element);
+                })
             }
         }
     });

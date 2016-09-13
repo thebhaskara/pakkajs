@@ -30,14 +30,13 @@
             '</div>',
         css: '.login-component{ padding:10px; } .login-component label{ display: block;}',
         controller: function(that) {
-            //var that = this;
             that.set('asd', 'bhaskara');
-            setTimeout(function() {
-                that.set('asd', 'bhaskara is still there');
-            }, 2000);
             that.changetext = function(event) {
                 that.set('asd', event.target.value);
             }
+            setTimeout(function() {
+                that.set('password', 'bhaskara');
+            }, 3000);
         }
     });
     var bodyEl = document.getElementsByTagName('body')[0];
@@ -45,6 +44,11 @@
     var len = login.$elements.length;
     for (var i = 0; i < len; i++) {
         bodyEl.appendChild(login.$elements[i]);
+    }
+    var login1 = new LoginComponent();
+    var len1 = login1.$elements.length;
+    for (i = 0; i < len1; i++) {
+        bodyEl.appendChild(login1.$elements[i]);
     }
     </script>
 </body>
