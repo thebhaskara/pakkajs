@@ -3,9 +3,10 @@
 The idea is to provide few simple UI tools.
 Inspired by http://youmightnotneedjquery.com/ and angularjs v1
 
-## MakeComponent
+## glue
 
-This can glue html and javascript seamlessly (like angularjs version 1) (need to check if it is really as good as angularjs)
+This can glue html and javascript seamlessly 
+syntax is like angularjs version 1.
 
 Code is very small and simple.
 
