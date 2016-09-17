@@ -45,6 +45,6 @@ var SomeComponent = glue({
 var sc = new SomeComponent();
 
 setTimeout(function() {
-    sc.destroy();
+    sc.$destroy();
 
 }, 4000);

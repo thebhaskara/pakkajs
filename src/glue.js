@@ -196,7 +196,7 @@
             }
 
             // destroys the object
-            context.destroy = function() {
+            context.$destroy = function() {
 
                 detachEvents(context);
                 removePropertyBindings(context);
@@ -426,13 +426,13 @@
     var propertyBinderCounter = 0;
     addBinder('bind-property', function(el, prop, context) {
         var timeoutHandle,
-            binderId = 'bind-property-' + propertyBinderCounter++;
-        var handler = function(event) {
-            if (timeoutHandle) clearTimeout(timeoutHandle);
-            timeoutHandle = setTimeout(function() {
-                context.$set(prop, event.target.value);
-            });
-        }
+            binderId = 'bind-property-' + propertyBinderCounter++,
+            handler = function(event) {
+                if (timeoutHandle) clearTimeout(timeoutHandle);
+                timeoutHandle = setTimeout(function() {
+                    context.$set(prop, event.target.value);
+                });
+            }
         each(['change', 'keyup', 'paste'], function(eventName) {
             attachEvent(eventName, el, handler, context, binderId);
         });
