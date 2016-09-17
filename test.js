@@ -1,6 +1,6 @@
 var LoginComponent = glue({
     name: 'login-component',
-    html: '<div>' +
+    html: '<div click-handle="clicked">' +
         '<label bind-text="toptext">Usename</label>' +
         '<input type="text" change-handle="changetext" >' +
         '<label bind-text="password"></label>' +
@@ -11,6 +11,9 @@ var LoginComponent = glue({
         that.$set('toptext', 'bhaskara');
         that.changetext = function(event) {
             that.$set('toptext', event.target.value);
+        }
+        that.clicked = function(event) {
+            alert('clicked');
         }
         setTimeout(function() {
             that.$set('password', 'bhaskara');

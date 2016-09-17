@@ -155,6 +155,13 @@
                 });
             }
 
+            // personal function to attach an event
+            context.$attachEvent = function(event, element,
+                handler, namespace) {
+                attachEvent(event, element,
+                    handler, context, namespace);
+            }
+
             // this function is available on the instance 
             // for setting html dynamically
             // but it is your responsibility to 
@@ -318,16 +325,18 @@
     // can bind all the binders given by add binder
     var linkBinders = glue.linkBinders = function(element, context, namespace) {
         each(binders, function(callback, name) {
-            var els = element.querySelectorAll('[' + name + ']');
-            each(els, function(el) {
-                var prop = el.getAttribute(name);
-                var bindingsList = context.$propertyBindings[prop] || [];
-                bindingsList.push({
-                    namespace: namespace,
-                    callback: callback(el, prop, context)
-                });
-                context.$propertyBindings[prop] = bindingsList;
-            });
+            var els = element.querySelectorAll('[' + name + ']'),
+                linkerFunction = function(el) {
+                    var prop = el.getAttribute(name);
+                    var bindingsList = context.$propertyBindings[prop] || [];
+                    bindingsList.push({
+                        namespace: namespace,
+                        callback: callback(el, prop, context)
+                    });
+                    context.$propertyBindings[prop] = bindingsList;
+                };
+            linkerFunction(element);
+            each(els, linkerFunction);
         });
     };
 
@@ -339,13 +348,17 @@
             glue.eventsList || eventsList,
             function(name) {
                 var attribute = name + '-handle',
-                    els = element.querySelectorAll('[' + attribute + ']');
-                each(els, function(el) {
-                    var prop = el.getAttribute(attribute);
-                    glue.attachEvent(name, el, function(event) {
-                        context[prop] && context[prop](event);
-                    }, context, namespace)
-                })
+                    els = element.querySelectorAll('[' + attribute + ']'),
+                    attacherFunction = function(el) {
+                        var prop = el.getAttribute(attribute);
+                        attachEvent(name, el, function(event) {
+                            context[prop] && context[prop](event);
+                        }, context, namespace)
+                    };
+                if (element.hasAttribute(attribute)) {
+                    attacherFunction(element);
+                }
+                each(els, attacherFunction);
             });
     };
 
@@ -423,15 +436,24 @@
         }
     });
 
+
+    var timeoutHandles = {},
+        executeDelayedOnce = function(callback, namespace, timeout) {
+            namespace = namespace || 'glue-generic-namespace';
+            timeoutHandle = timeoutHandles[namespace]
+            if (timeoutHandle) clearTimeout(timeoutHandle);
+            timeoutHandle = setTimeout(callback, timeout);
+            timeoutHandles[namespace] = timeoutHandle;
+        }
+
+
     var propertyBinderCounter = 0;
     addBinder('bind-property', function(el, prop, context) {
-        var timeoutHandle,
-            binderId = 'bind-property-' + propertyBinderCounter++,
+        var binderId = 'bind-property-' + propertyBinderCounter++,
             handler = function(event) {
-                if (timeoutHandle) clearTimeout(timeoutHandle);
-                timeoutHandle = setTimeout(function() {
+                executeDelayedOnce(function() {
                     context.$set(prop, event.target.value);
-                });
+                }, binderId);
             }
         each(['change', 'keyup', 'paste'], function(eventName) {
             attachEvent(eventName, el, handler, context, binderId);
