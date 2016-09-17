@@ -117,6 +117,14 @@ User can assign a name to component. `glue` adds this name to the root element. 
 
 User can assign elements already loaded into DOM using `document.querySelectorAll('<selector>')`
 
+### `glue.addStyleSheet(css, id, styleEl)`
+
+Personal stylesheet adding function.
+
+Accepts css string, id to be maintained and style element if we already have any.
+
+Returns style element.
+
 ## Pending or ongoing activities
 * make more binders
 * optimize the functions
