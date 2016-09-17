@@ -117,13 +117,136 @@ User can assign a name to component. `glue` adds this name to the root element. 
 
 User can assign elements already loaded into DOM using `document.querySelectorAll('<selector>')`
 
-### `glue.addStyleSheet(css, id, styleEl)`
+### `glue.addStyleSheet(css, id[, styleEl])`
 
 Personal stylesheet adding function.
 
 Accepts css string, id to be maintained and style element if we already have any.
 
 Returns style element.
+
+### `glue.detachEvents(context[, namespace])`
+
+Detaches events for a `glue` context or instance by namespace. If namespace is not given, then `glue` detaches all the events.
+
+Accepts glue context and namespace.
+
+### `glue.detachEvent(event, element, handler, context)`
+
+Detaches one event for a `glue` context or instance.
+
+Accepts event name, HTML element object, handler callback function and a glue context.
+
+### `glue.removePropertyBindings(context[, namespace])`
+
+Removes property bindings for a `glue` context or instance by namespace. If namespace is not given, then `glue` removes all the property bindings.
+
+Accepts glue context and namespace string.
+
+### `glue.apply(context[, prop, value])`
+
+Applies property bindings. if prop and value are not provided, it will apply for all the properties
+
+Accepts glue context, property name string and value object.
+
+### `glue.addClass(element, className)`
+
+Adds class to a HTML element.
+
+Accepts HTML element and class name string.
+
+### `glue.empty(element)`
+
+Empties conetents of an element.
+
+Accepts HTML element.
+
+### `glue.linkBinders(element, context, namespace)`
+
+Links all the binders noticed in the element.
+
+Accepts HTML element, glue context and namespace string.
+
+### `glue.attachEvents(element, context, namespace)`
+
+Attaches all events noticed in the element.
+
+Accepts HTML element, glue context and namespace string.
+
+### `glue.attachEvent(event, element, handler, context, namespace)`
+
+Attaches one event.
+
+Accepts events name string, HTML element, handler callback, glue context and namespace string.
+
+### `glue.pushListener(event, element, handler, context, namespace)`
+
+Adds the event handler to the listners cache.
+
+Accepts events name string, HTML element, handler callback, glue context and namespace string.
+
+### `glue.addBinder(name, callback)`
+
+Can define a new binder. 
+
+`name` will be checked in attributes.
+
+`callback` will be called only once while instantiation and expects the `callback` to return a callback for updating on value change.
+
+e.g.
+
+```
+    addBinder('bind-text', function(el, prop, context) {
+        return function(value) {
+            el.innerText = definitelyGetString(value);
+        }
+    });
+```
+
+### Attribute binding
+
+Like angularjs v1's attribute based directives `glue` allows some attribute binders.
+
+#### `bind-text`
+
+Binds text to the html from the property assigned.
+
+e.g. `<span bind-text="myName"></span>`
+use `context.set('myName', 'the bhaskara')` in your controller to set its value.
+
+#### `bind-html`
+
+Binds html string to the html from the property assigned. also applies all the binders and events inside it.
+
+e.g. `<div bind-html="myTemplate"></div>`
+use `context.set('myTemplate', '<span>the bhaskara is great!</span>')` in your controller to set its value.
+
+#### `bind-property`
+
+Bind property is like `ng-model` in angularjs. It binds the value of any input element to the property and vice-versa also gets handled.
+
+e.g. `<input type='text' bind-property="username" >`
+use `context.get('username')` in your controller to get its value.
+
+#### `bind-component`
+
+Binds a glue component instance to the element.
+
+e.g. `<div bind-component="myComponent" ></div>`
+use `context.set('myComponent', new SomeGlueComponent())` in your controller to bind this component.
+
+
+### Events binding
+
+`glue` allows attribute based event attaching.
+
+#### `<event_name>-handle="handlerCallback"`
+
+Binds event of the element to the handler callback from the glue context.
+
+e.g. `<div click-handle="clicked" ></div>`
+use `context.clicked = function(event){ window.alert('clicked!') }` in your controller to bind this event
+
 
 ## Pending or ongoing activities
 * make more binders
