@@ -23,6 +23,10 @@
             var type = typeof obj;
             return type === 'function' || type === 'object' && !!obj;
         },
+        // from underscorejs
+        isArray = function(obj) {
+            return toString.call(obj) === '[object Array]';
+        },
         // source https://github.com/toddmotto/foreach/blob/master/src/foreach.js
         each = function(collection, callback, scope) {
             if (!isUndefined(collection)) {
@@ -88,15 +92,19 @@
 
             // getter to get property's value
             context.$get = function(prop) {
-                return properties[prop];
+                try {
+                    return eval.call(properties, prop);
+                } catch (e) {}
             };
 
             // setter to set property's value
             // and also evaluates the bindings to the html
             // associated with this property
             context.$set = function(prop, value) {
-                properties[prop] = value;
-                apply(context, prop, value);
+                try {
+                    eval.call(properties, prop + '=' + JSON.stringify(value));
+                    apply(context, prop, value);
+                } catch (e) {}
             };
 
             // initializing components name and id into its context
@@ -297,7 +305,16 @@
         } else {
             each(context.$propertyBindings[prop], function(binding) {
                 binding.callback(value);
-            })
+            });
+            if (isArray(value)) {
+                each(value, function(v, i) {
+                    apply(context, prop + '[' + i + ']', v);
+                })
+            } else if (isObject(value)) {
+                each(value, function(v, k) {
+                    apply(context, prop + '.' + k, v);
+                })
+            }
         }
     }
 

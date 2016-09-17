@@ -5,10 +5,13 @@ var LoginComponent = glue({
         '<input type="text" change-handle="changetext" >' +
         '<label bind-text="password"></label>' +
         '<input type="password" bind-property="password" >' +
+        '<span bind-text="use.name[0].first"></span>' +
         '</div>',
     css: '.login-component{ padding:10px; } .login-component label{ display: block;}',
     controller: function(that) {
         that.$set('toptext', 'bhaskara');
+        that.$set('use', { name: [{ first: ' mann this is cool! ' }] });
+
         that.changetext = function(event) {
             that.$set('toptext', event.target.value);
         }
