@@ -1,7 +1,9 @@
-# the bhaskara ui
+# the bhaskara ui 
 
 The idea is to provide few simple UI tools.
 Inspired by http://youmightnotneedjquery.com/ and angularjs v1
+
+[Visit site](http://thebhaskara.github.io/thebhaskaraui/)
 
 ## `glue`
 
