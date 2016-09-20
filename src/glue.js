@@ -4,7 +4,7 @@
     } else if (typeof module === "object" && module.exports) {
         module.exports = factory();
     } else {
-        root.glue = factory();
+        root.pakka = factory();
     }
 }(this, function() {
 
@@ -47,7 +47,7 @@
     // this is a list events known to chrome
     // this actually is an overkill,
     // so we gave another optimal solution to this. 
-    // you can set only required events in glue.eventsList (to apply globally)
+    // you can set only required events in pakka.eventsList (to apply globally)
     // or even in your personal instance (to apply locally to the instance)
     var eventsList = [
         "abort", "beforecopy", "beforecut", "beforepaste",
@@ -65,8 +65,8 @@
         "webkitfullscreenchange", "webkitfullscreenerror", "wheel"
     ];
 
-    // this is the base glue function you have been looking for
-    var glue = function(options) {
+    // this is the base pakka function you have been looking for
+    var pakka = function(options) {
 
         // components name is being set
         // you can specify it in the options
@@ -234,7 +234,7 @@
     // you can  detach events completely
     // or you can specify a namespace for only that to be removed
     // you can check the bind-html implementation
-    var detachEvents = glue.detachEvents = function(context, namespace) {
+    var detachEvents = pakka.detachEvents = function(context, namespace) {
         var tempListeners = [];
         each(context.$listeners, function(listener) {
             if (isUndefined(namespace) || listener.namespace === namespace) {
@@ -249,13 +249,13 @@
     }
 
     // this works on specification of a listener item
-    var detachEvent = glue.detachEvent = function(event, element, handler, context) {
+    var detachEvent = pakka.detachEvent = function(event, element, handler, context) {
         if (element.removeEventListener) { // DOM standard
-            detachEvent = glue.detachEvent = function(event, element, handler, context) {
+            detachEvent = pakka.detachEvent = function(event, element, handler, context) {
                 element.removeEventListener(event, handler, false);
             }
         } else if (element.detachEvent) { // IE
-            detachEvent = glue.detachEvent = function(event, element, handler, context) {
+            detachEvent = pakka.detachEvent = function(event, element, handler, context) {
                 element.detachEvent('on' + event, handler);
             }
         }
@@ -264,7 +264,7 @@
 
     // you can remove all property bindings or 
     // specify a namespace to remove onlyfor that
-    var removePropertyBindings = glue.removePropertyBindings =
+    var removePropertyBindings = pakka.removePropertyBindings =
         function(context, namespace) {
             each(context.$propertyBindings, function(bindings, prop) {
                 if (isUndefined(namespace)) {
@@ -284,7 +284,7 @@
 
     // personal stylesheet adding function
     // this would not work correctly outside of this scope 
-    var addStyleSheet = glue.addStyleSheet = function(css, id, styleEl) {
+    var addStyleSheet = pakka.addStyleSheet = function(css, id, styleEl) {
         if (isUndefined(styleEl)) {
             styleEl = document.createElement('style');
             styleEl.setAttribute('id', id);
@@ -295,7 +295,7 @@
     };
 
     // binding evaluator
-    var apply = glue.apply = function(context, prop, value) {
+    var apply = pakka.apply = function(context, prop, value) {
         if (isUndefined(prop)) {
             // in case prop is not provided
             // evaluates everything
@@ -319,7 +319,7 @@
     }
 
     // addClass function from youmightnotneedjquery.com
-    var addClass = glue.addClass = function(el, className) {
+    var addClass = pakka.addClass = function(el, className) {
         if (el.classList) {
             addClass = function(el, className) {
                 el.classList.add(className);
@@ -333,14 +333,14 @@
     };
 
     // empty function from youmightnotneedjquery.com
-    var empty = glue.empty = function(el) {
+    var empty = pakka.empty = function(el) {
         while (el.firstChild) {
             el.removeChild(el.firstChild);
         }
     };
 
     // can bind all the binders given by add binder
-    var linkBinders = glue.linkBinders = function(element, context, namespace) {
+    var linkBinders = pakka.linkBinders = function(element, context, namespace) {
         each(binders, function(callback, name) {
             var els = element.querySelectorAll('[' + name + ']'),
                 linkerFunction = function(el) {
@@ -358,11 +358,11 @@
     };
 
     // attaches events
-    var attachEvents = glue.attachEvents = function(element, context, namespace) {
+    var attachEvents = pakka.attachEvents = function(element, context, namespace) {
         // to make the event list smaller, user can provide a custom list 
-        // at instance level or glue level
+        // at instance level or pakka level
         each(context.eventsList || context.$options.eventsList ||
-            glue.eventsList || eventsList,
+            pakka.eventsList || eventsList,
             function(name) {
                 var attribute = name + '-handle',
                     els = element.querySelectorAll('[' + attribute + ']'),
@@ -380,12 +380,12 @@
     };
 
     // attaches one event
-    var attachEvent = glue.attachEvent = function(event, element,
+    var attachEvent = pakka.attachEvent = function(event, element,
         handler, context, namespace) {
 
         if (element.addEventListener) { // DOM standard
 
-            attachEvent = glue.attachEvent = function(event, element,
+            attachEvent = pakka.attachEvent = function(event, element,
                 handler, context, namespace) {
                 pushListener(event, element, handler, context, namespace);
                 element.addEventListener(event, handler, false)
@@ -393,7 +393,7 @@
 
         } else if (element.attachEvent) { // IE
 
-            attachEvent = glue.attachEvent = function(event, element,
+            attachEvent = pakka.attachEvent = function(event, element,
                 handler, context, namespace) {
                 pushListener(event, element, handler, context, namespace);
                 element.attachEvent('on' + event, handler);
@@ -403,7 +403,7 @@
         attachEvent(event, element, handler, context, namespace);
     }
 
-    var pushListener = glue.pushListener = function(event, element, handler, context, namespace) {
+    var pushListener = pakka.pushListener = function(event, element, handler, context, namespace) {
         context.$listeners.push({
             element: element,
             event: event,
@@ -412,9 +412,9 @@
         })
     }
 
-    //var binders = glue.binders = {};
+    //var binders = pakka.binders = {};
     var binders = {};
-    var addBinder = glue.addBinder = function(name, callback) {
+    var addBinder = pakka.addBinder = function(name, callback) {
         binders[name] = callback;
     };
 
@@ -456,7 +456,7 @@
 
     var timeoutHandles = {},
         executeDelayedOnce = function(callback, namespace, timeout) {
-            namespace = namespace || 'glue-generic-namespace';
+            namespace = namespace || 'pakka-generic-namespace';
             timeoutHandle = timeoutHandles[namespace]
             if (timeoutHandle) clearTimeout(timeoutHandle);
             timeoutHandle = setTimeout(callback, timeout);
@@ -493,5 +493,5 @@
         }
     });
 
-    return glue;
+    return pakka;
 }));

@@ -1,4 +1,4 @@
-var LoginComponent = glue({
+var LoginComponent = pakka({
     name: 'login-component',
     html: '<div click-handle="clicked">' +
         '<label bind-text="toptext">Usename</label>' +
@@ -37,7 +37,7 @@ for (i = 0; i < len1; i++) {
     bodyEl.appendChild(login1.$elements[i]);
 }
 
-var SomeComponent = glue({
+var SomeComponent = pakka({
     name: 'some-component-name',
     elements: document.querySelectorAll('.some-component'),
     // css: '.some-component-name{ padding:20px; background-color:green; } .some-component-name label{ display: block;}',
