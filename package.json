@@ -1,0 +1,39 @@
+{
+    "name": "pakkajs",
+    "version": "1.0.0",
+    "description": "The idea is to provide few pakka simple UI tools.",
+    "main": "src/pakka.js",
+    "directories": {
+        "doc": "docs"
+    },
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/thebhaskara/pakkajs.git"
+    },
+    "keywords": [
+        "view",
+        "view-model",
+        "MVVM",
+        "model",
+        "view",
+        "view-model",
+        "two",
+        "way",
+        "binding",
+        "html",
+        "js",
+        "javascript",
+        "DOM",
+        "UI",
+        "css"
+    ],
+    "author": "Bhaskara Rama Sai Busam",
+    "license": "SEE LICENSE IN license.txt",
+    "bugs": {
+        "url": "https://github.com/thebhaskara/pakkajs/issues"
+    },
+    "homepage": "https://github.com/thebhaskara/pakkajs#readme"
+}

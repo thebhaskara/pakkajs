@@ -1,0 +1,39 @@
+{
+  "name": "pakkajs",
+  "description": "The idea is to provide few pakka simple UI tools.",
+  "main": "src/pakka.js",
+  "authors": [
+    "Bhaskara Rama Sai Busam"
+  ],
+  "license": "SEE LICENSE IN license.txt",
+  "keywords": [
+    "view",
+    "view-model",
+    "MVVM",
+    "model",
+    "view",
+    "view-model",
+    "two",
+    "way",
+    "binding",
+    "html",
+    "js",
+    "javascript",
+    "DOM",
+    "UI",
+    "css"
+  ],
+  "homepage": "https://github.com/thebhaskara/pakkajs",
+  "moduleType": [
+    "amd",
+    "globals",
+    "node"
+  ],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
