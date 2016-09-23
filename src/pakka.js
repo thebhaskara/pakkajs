@@ -13,36 +13,7 @@
         // this lets us assign unique names to components
         componentNameCounter = 0,
         // this lets us assign unique names to each instances of components
-        componentIdCounter = 0,
-        // from underscorejs
-        isUndefined = function(obj) {
-            return obj === void 0;
-        },
-        // from underscorejs
-        isObject = function(obj) {
-            var type = typeof obj;
-            return type === 'function' || type === 'object' && !!obj;
-        },
-        // from underscorejs
-        isArray = function(obj) {
-            return toString.call(obj) === '[object Array]';
-        },
-        // source https://github.com/toddmotto/foreach/blob/master/src/foreach.js
-        each = function(collection, callback, scope) {
-            if (!isUndefined(collection)) {
-                if (Object.prototype.toString.call(collection) === '[object Object]') {
-                    for (var prop in collection) {
-                        if (Object.prototype.hasOwnProperty.call(collection, prop)) {
-                            callback.call(scope, collection[prop], prop, collection);
-                        }
-                    }
-                } else {
-                    for (var i = 0, len = collection.length; i < len; i++) {
-                        callback.call(scope, collection[i], i, collection);
-                    }
-                }
-            }
-        };
+        componentIdCounter = 0;
 
     // this is a list events known to chrome
     // this actually is an overkill,
@@ -78,6 +49,10 @@
         // the components style is added or not
         var componentStyleElement;
 
+        if (!options.controller) {
+            options.controller = function() {};
+        }
+
         return function() {
 
             // instance of the context
@@ -93,7 +68,7 @@
             // getter to get property's value
             context.$get = function(prop) {
                 try {
-                    return eval.call(properties, prop);
+                    return eval('context.$properties.' + prop);
                 } catch (e) {}
             };
 
@@ -101,10 +76,8 @@
             // and also evaluates the bindings to the html
             // associated with this property
             context.$set = function(prop, value) {
-                try {
-                    eval.call(properties, prop + '=' + JSON.stringify(value));
-                    apply(context, prop, value);
-                } catch (e) {}
+                eval('context.$properties.' + prop + '= value;');
+                apply(context, prop, value);
             };
 
             // initializing components name and id into its context
@@ -231,40 +204,111 @@
         }
     }
 
-    // you can  detach events completely
-    // or you can specify a namespace for only that to be removed
-    // you can check the bind-html implementation
-    var detachEvents = pakka.detachEvents = function(context, namespace) {
-        var tempListeners = [];
-        each(context.$listeners, function(listener) {
-            if (isUndefined(namespace) || listener.namespace === namespace) {
-                detachEvent(listener.event, listener.element, listener.handler, context);
-                delete listener;
-            } else {
-                tempListeners.push(listener);
+    var create = pakka.create = function(options) {
+            if (isString(options)) {
+                options = {
+                    elements: document.querySelectorAll(options)
+                };
+            } else if (options.elementsSelector) {
+                options.elements = document.querySelectorAll(options.elementsSelector);
             }
-        });
-        if (isUndefined(namespace)) delete context.$listeners;
-        else context.$listeners = tempListeners;
-    }
+            var obj = pakka(options);
+            return new obj();
+        },
 
-    // this works on specification of a listener item
-    var detachEvent = pakka.detachEvent = function(event, element, handler, context) {
-        if (element.removeEventListener) { // DOM standard
-            detachEvent = pakka.detachEvent = function(event, element, handler, context) {
-                element.removeEventListener(event, handler, false);
-            }
-        } else if (element.detachEvent) { // IE
-            detachEvent = pakka.detachEvent = function(event, element, handler, context) {
-                element.detachEvent('on' + event, handler);
-            }
-        }
-        detachEvent(event, element, handler, context);
-    }
+        createMany = pakka.createMany = function(selector) {
+            var collection = [],
+                elements = document.querySelectorAll(selector);
+            each(elements, function(element) {
+                var options = { elements: [] };
+                options.elements.push(element);
+                collection.push(create(options));
+            });
+            return collection;
+        },
 
-    // you can remove all property bindings or 
-    // specify a namespace to remove onlyfor that
-    var removePropertyBindings = pakka.removePropertyBindings =
+        // from underscorejs
+        isString = pakka.isString = function(obj) {
+            return Object.prototype.toString.call(obj) === '[object String]';
+        },
+
+        // from underscorejs
+        isUndefined = pakka.isUndefined = function(obj) {
+            return obj === void 0;
+        },
+
+        // from underscorejs
+        isObject = pakka.isObject = function(obj) {
+            var type = typeof obj;
+            return type === 'function' || type === 'object' && !!obj;
+        },
+
+        // from underscorejs
+        simpleObject = {},
+        simpleObjectToString = simpleObject.constructor.toString(),
+        isSimpleObject = pakka.isSimpleObject = function(obj) {
+            if (isObject(obj)) {
+                return obj.constructor.toString() == simpleObjectToString;
+            }
+            return false;
+        },
+
+        // from underscorejs
+        isArray = pakka.isArray = function(obj) {
+            return toString.call(obj) === '[object Array]';
+        },
+
+        // source https://github.com/toddmotto/foreach/blob/master/src/foreach.js
+        each = pakka.each = function(collection, callback, scope) {
+            if (!isUndefined(collection)) {
+                if (Object.prototype.toString.call(collection) === '[object Object]') {
+                    for (var prop in collection) {
+                        if (Object.prototype.hasOwnProperty.call(collection, prop)) {
+                            callback.call(scope, collection[prop], prop, collection);
+                        }
+                    }
+                } else {
+                    for (var i = 0, len = collection.length; i < len; i++) {
+                        callback.call(scope, collection[i], i, collection);
+                    }
+                }
+            }
+        },
+
+        // you can  detach events completely
+        // or you can specify a namespace for only that to be removed
+        // you can check the bind-html implementation
+        detachEvents = pakka.detachEvents = function(context, namespace) {
+            var tempListeners = [];
+            each(context.$listeners, function(listener) {
+                if (isUndefined(namespace) || listener.namespace === namespace) {
+                    detachEvent(listener.event, listener.element, listener.handler, context);
+                    delete listener;
+                } else {
+                    tempListeners.push(listener);
+                }
+            });
+            if (isUndefined(namespace)) delete context.$listeners;
+            else context.$listeners = tempListeners;
+        },
+
+        // this works on specification of a listener item
+        detachEvent = pakka.detachEvent = function(event, element, handler, context) {
+            if (element.removeEventListener) { // DOM standard
+                detachEvent = pakka.detachEvent = function(event, element, handler, context) {
+                    element.removeEventListener(event, handler, false);
+                }
+            } else if (element.detachEvent) { // IE
+                detachEvent = pakka.detachEvent = function(event, element, handler, context) {
+                    element.detachEvent('on' + event, handler);
+                }
+            }
+            detachEvent(event, element, handler, context);
+        },
+
+        // you can remove all property bindings or 
+        // specify a namespace to remove onlyfor that
+        removePropertyBindings = pakka.removePropertyBindings =
         function(context, namespace) {
             each(context.$propertyBindings, function(bindings, prop) {
                 if (isUndefined(namespace)) {
@@ -280,159 +324,162 @@
                     context.$propertyBindings[prop] = tempBindings;
                 }
             });
-        }
+        },
 
-    // personal stylesheet adding function
-    // this would not work correctly outside of this scope 
-    var addStyleSheet = pakka.addStyleSheet = function(css, id, styleEl) {
-        if (isUndefined(styleEl)) {
-            styleEl = document.createElement('style');
-            styleEl.setAttribute('id', id);
-            headEl.appendChild(styleEl);
-        }
-        styleEl.innerHTML = css;
-        return styleEl;
-    };
+        // personal stylesheet adding function
+        // this would not work correctly outside of this scope 
+        addStyleSheet = pakka.addStyleSheet = function(css, id, styleEl) {
+            if (isUndefined(styleEl)) {
+                styleEl = document.createElement('style');
+                styleEl.setAttribute('id', id);
+                headEl.appendChild(styleEl);
+            }
+            styleEl.innerHTML = css;
+            return styleEl;
+        },
 
-    // binding evaluator
-    var apply = pakka.apply = function(context, prop, value) {
-        if (isUndefined(prop)) {
-            // in case prop is not provided
-            // evaluates everything
-            each(context.$propertyBindings, function(list, propName) {
-                apply(context, propName, context.get(propName));
-            })
-        } else {
-            each(context.$propertyBindings[prop], function(binding) {
-                binding.callback(value);
-            });
-            if (isArray(value)) {
-                each(value, function(v, i) {
-                    apply(context, prop + '[' + i + ']', v);
+        // binding evaluator
+        apply = pakka.apply = function(context, prop, value) {
+            if (isUndefined(prop)) {
+                // in case prop is not provided
+                // evaluates everything
+                each(context.$propertyBindings, function(list, propName) {
+                    apply(context, propName, context.get(propName));
                 })
-            } else if (isObject(value)) {
-                each(value, function(v, k) {
-                    apply(context, prop + '.' + k, v);
-                })
-            }
-        }
-    }
-
-    // addClass function from youmightnotneedjquery.com
-    var addClass = pakka.addClass = function(el, className) {
-        if (el.classList) {
-            addClass = function(el, className) {
-                el.classList.add(className);
-            }
-        } else {
-            addClass = function(el, className) {
-                el.className += ' ' + className;
-            }
-        }
-        addClass(el, className);
-    };
-
-    // empty function from youmightnotneedjquery.com
-    var empty = pakka.empty = function(el) {
-        while (el.firstChild) {
-            el.removeChild(el.firstChild);
-        }
-    };
-
-    // can bind all the binders given by add binder
-    var linkBinders = pakka.linkBinders = function(element, context, namespace) {
-        each(binders, function(callback, name) {
-            var els = element.querySelectorAll('[' + name + ']'),
-                linkerFunction = function(el) {
-                    var prop = el.getAttribute(name);
-                    var bindingsList = context.$propertyBindings[prop] || [];
-                    bindingsList.push({
-                        namespace: namespace,
-                        callback: callback(el, prop, context)
-                    });
-                    context.$propertyBindings[prop] = bindingsList;
-                };
-            linkerFunction(element);
-            each(els, linkerFunction);
-        });
-    };
-
-    // attaches events
-    var attachEvents = pakka.attachEvents = function(element, context, namespace) {
-        // to make the event list smaller, user can provide a custom list 
-        // at instance level or pakka level
-        each(context.eventsList || context.$options.eventsList ||
-            pakka.eventsList || eventsList,
-            function(name) {
-                var attribute = name + '-handle',
-                    els = element.querySelectorAll('[' + attribute + ']'),
-                    attacherFunction = function(el) {
-                        var prop = el.getAttribute(attribute);
-                        attachEvent(name, el, function(event) {
-                            context[prop] && context[prop](event);
-                        }, context, namespace)
-                    };
-                if (element.hasAttribute(attribute)) {
-                    attacherFunction(element);
+            } else {
+                each(context.$propertyBindings[prop], function(binding) {
+                    binding.callback(value);
+                });
+                if (isArray(value)) {
+                    each(value, function(v, i) {
+                        apply(context, prop + '[' + i + ']', v);
+                    })
+                } else if (isSimpleObject(value)) {
+                    each(value, function(v, k) {
+                        apply(context, prop + '.' + k, v);
+                    })
                 }
-                each(els, attacherFunction);
+            }
+        },
+
+        // addClass function from youmightnotneedjquery.com
+        addClass = pakka.addClass = function(el, className) {
+            if (el.classList) {
+                addClass = function(el, className) {
+                    el.classList.add(className);
+                }
+            } else {
+                addClass = function(el, className) {
+                    el.className += ' ' + className;
+                }
+            }
+            addClass(el, className);
+        },
+
+        // empty function from youmightnotneedjquery.com
+        empty = pakka.empty = function(el) {
+            while (el.firstChild) {
+                el.removeChild(el.firstChild);
+            }
+        },
+
+        // can bind all the binders given by add binder
+        linkBinders = pakka.linkBinders = function(element, context, namespace) {
+            each(binders, function(callback, name) {
+                var els = element.querySelectorAll('[' + name + ']'),
+                    linkerFunction = function(el) {
+                        var prop = el.getAttribute(name);
+                        var bindingsList = context.$propertyBindings[prop] || [];
+                        bindingsList.push({
+                            namespace: namespace,
+                            callback: callback(el, prop, context)
+                        });
+                        context.$propertyBindings[prop] = bindingsList;
+                    };
+                linkerFunction(element);
+                each(els, linkerFunction);
             });
-    };
+        },
 
-    // attaches one event
-    var attachEvent = pakka.attachEvent = function(event, element,
-        handler, context, namespace) {
+        // attaches events
+        attachEvents = pakka.attachEvents = function(element, context, namespace) {
+            // to make the event list smaller, user can provide a custom list 
+            // at instance level or pakka level
+            each(context.eventsList || context.$options.eventsList ||
+                pakka.eventsList || eventsList,
+                function(name) {
+                    var attribute = name + '-handle',
+                        els = element.querySelectorAll('[' + attribute + ']'),
+                        attacherFunction = function(el) {
+                            var prop = el.getAttribute(attribute);
+                            attachEvent(name, el, function(event) {
+                                context[prop] && context[prop](event);
+                            }, context, namespace)
+                        };
+                    if (element.hasAttribute(attribute)) {
+                        attacherFunction(element);
+                    }
+                    each(els, attacherFunction);
+                });
+        },
 
-        if (element.addEventListener) { // DOM standard
+        // attaches one event
+        attachEvent = pakka.attachEvent = function(event, element,
+            handler, context, namespace) {
 
-            attachEvent = pakka.attachEvent = function(event, element,
-                handler, context, namespace) {
-                pushListener(event, element, handler, context, namespace);
-                element.addEventListener(event, handler, false)
+            if (element.addEventListener) { // DOM standard
+
+                attachEvent = pakka.attachEvent = function(event, element,
+                    handler, context, namespace) {
+                    pushListener(event, element, handler, context, namespace);
+                    element.addEventListener(event, handler, false)
+                }
+
+            } else if (element.attachEvent) { // IE
+
+                attachEvent = pakka.attachEvent = function(event, element,
+                    handler, context, namespace) {
+                    pushListener(event, element, handler, context, namespace);
+                    element.attachEvent('on' + event, handler);
+                }
+
             }
+            attachEvent(event, element, handler, context, namespace);
+        },
 
-        } else if (element.attachEvent) { // IE
+        pushListener = pakka.pushListener = function(event, element, handler, context, namespace) {
+            context.$listeners.push({
+                element: element,
+                event: event,
+                handler: handler,
+                namespace: namespace
+            })
+        },
 
-            attachEvent = pakka.attachEvent = function(event, element,
-                handler, context, namespace) {
-                pushListener(event, element, handler, context, namespace);
-                element.attachEvent('on' + event, handler);
+        // binders = pakka.binders = {};
+        binders = {},
+
+        addBinder = pakka.addBinder = function(name, callback) {
+            binders[name] = callback;
+        },
+
+        definitelyGetString = function(value) {
+            if (isUndefined(value)) {
+                return '';
+            } else if (isObject(value)) {
+                return JSON.stringify(value);
+            } else {
+                return value;
             }
-
-        }
-        attachEvent(event, element, handler, context, namespace);
-    }
-
-    var pushListener = pakka.pushListener = function(event, element, handler, context, namespace) {
-        context.$listeners.push({
-            element: element,
-            event: event,
-            handler: handler,
-            namespace: namespace
-        })
-    }
-
-    //var binders = pakka.binders = {};
-    var binders = {};
-    var addBinder = pakka.addBinder = function(name, callback) {
-        binders[name] = callback;
-    };
-
-    var definitelyGetString = function(value) {
-        if (isUndefined(value)) {
-            return '';
-        } else if (isObject(value)) {
-            return JSON.stringify(value);
-        } else {
-            return value;
-        }
-    }
-
-    addBinder('bind-text', function(el, prop, context) {
-        return function(value) {
-            el.innerText = definitelyGetString(value);
-        }
-    });
+        },
+        timeoutHandles = {},
+        executeDelayedOnce = function(callback, namespace, timeout) {
+            namespace = namespace || 'pakka-generic-namespace';
+            timeoutHandle = timeoutHandles[namespace]
+            if (timeoutHandle) clearTimeout(timeoutHandle);
+            timeoutHandle = setTimeout(callback, timeout);
+            timeoutHandles[namespace] = timeoutHandle;
+        };
 
     var htmlBinderCounter = 0;
     addBinder('bind-html', function(el, prop, context) {
@@ -453,17 +500,6 @@
         }
     });
 
-
-    var timeoutHandles = {},
-        executeDelayedOnce = function(callback, namespace, timeout) {
-            namespace = namespace || 'pakka-generic-namespace';
-            timeoutHandle = timeoutHandles[namespace]
-            if (timeoutHandle) clearTimeout(timeoutHandle);
-            timeoutHandle = setTimeout(callback, timeout);
-            timeoutHandles[namespace] = timeoutHandle;
-        }
-
-
     var propertyBinderCounter = 0;
     addBinder('bind-property', function(el, prop, context) {
         var binderId = 'bind-property-' + propertyBinderCounter++,
@@ -479,6 +515,12 @@
             if (!isUndefined(value)) {
                 el.value = value;
             }
+        }
+    });
+
+    addBinder('bind-text', function(el, prop, context) {
+        return function(value) {
+            el.innerText = definitelyGetString(value);
         }
     });
 
