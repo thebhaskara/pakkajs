@@ -151,7 +151,15 @@
                 var div = document.createElement('div');
                 div.innerHTML = options.html || '<div></div>';
 
-                context.$setElements(div.children);
+                // bug-fix
+                // the HTMLCollection returned was acting weird 
+                // incase of bind-components sorting.
+                var children = [];
+                each(div.children, function(child) {
+                    children.push(child);
+                });
+
+                context.$setElements(children);
             }
 
             if (!isUndefined(options.elements)) {
@@ -538,6 +546,32 @@
                     el.appendChild(element);
                 })
             }
+        }
+    });
+
+    // this logic needs to be improved 
+    // to cater different scenarios like...
+    // removing one element from list, 
+    // sorting the list, etc...
+    addBinder('bind-components', function(el, prop, context) {
+        var parentElement = el.parentElement,
+            nextSibling = el.nextSibling,
+            previousElements = [el];
+
+        return function(components) {
+            if (isUndefined(components) || !isArray(components)) {
+                return;
+            }
+            each(previousElements, function(element) {
+                parentElement.removeChild(element);
+            })
+            previousElements = [];
+            each(components, function(component) {
+                each(component.$elements, function(element) {
+                    parentElement.insertBefore(element, nextSibling);
+                    previousElements.push(element);
+                });
+            })
         }
     });
 
