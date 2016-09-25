@@ -264,12 +264,16 @@
                 if (Object.prototype.toString.call(collection) === '[object Object]') {
                     for (var prop in collection) {
                         if (Object.prototype.hasOwnProperty.call(collection, prop)) {
-                            callback.call(scope, collection[prop], prop, collection);
+                            if (callback.call(scope, collection[prop], prop, collection) === false) {
+                                return;
+                            }
                         }
                     }
                 } else {
                     for (var i = 0, len = collection.length; i < len; i++) {
-                        callback.call(scope, collection[i], i, collection);
+                        if (callback.call(scope, collection[i], i, collection) === false) {
+                            return;
+                        }
                     }
                 }
             }
@@ -396,7 +400,9 @@
                         });
                         context.$propertyBindings[prop] = bindingsList;
                     };
-                linkerFunction(element);
+                if (element.hasAttribute(name)) {
+                    linkerFunction(element);
+                }
                 each(els, linkerFunction);
             });
         },
