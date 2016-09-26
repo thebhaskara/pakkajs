@@ -154,12 +154,7 @@
                 // bug-fix
                 // the HTMLCollection returned was acting weird 
                 // incase of bind-components sorting.
-                var children = [];
-                each(div.children, function(child) {
-                    children.push(child);
-                });
-
-                context.$setElements(children);
+                context.$setElements(select(div.children));
             }
 
             if (!isUndefined(options.elements)) {
@@ -212,13 +207,23 @@
         }
     }
 
-    var create = pakka.create = function(options) {
+    var select = pakka.select = function(elements) {
+            if (isString(elements)) {
+                elements = document.querySelectorAll(elements);
+            }
+            var result = [];
+            each(elements, function(element) {
+                result.push(element);
+            });
+            return result;
+        },
+        create = pakka.create = function(options) {
             if (isString(options)) {
                 options = {
-                    elements: document.querySelectorAll(options)
+                    elements: select(options)
                 };
             } else if (options.elementsSelector) {
-                options.elements = document.querySelectorAll(options.elementsSelector);
+                options.elements = select(options.elementsSelector);
             }
             var obj = pakka(options);
             return new obj();
@@ -226,7 +231,7 @@
 
         createMany = pakka.createMany = function(selector) {
             var collection = [],
-                elements = document.querySelectorAll(selector);
+                elements = select(selector);
             each(elements, function(element) {
                 var options = { elements: [] };
                 options.elements.push(element);
@@ -556,7 +561,11 @@
     addBinder('bind-components', function(el, prop, context) {
         var parentElement = el.parentElement,
             nextSibling = el.nextSibling,
-            previousElements = [el];
+            tempElement = document.createElement('div'),
+            previousElements = [];
+
+        tempElement.appendChild(el);
+        var elementString = tempElement.innerHTML;
 
         return function(components) {
             if (isUndefined(components) || !isArray(components)) {
@@ -567,10 +576,13 @@
             })
             previousElements = [];
             each(components, function(component) {
+                tempElement.innerHTML = elementString;
+                var child = tempElement.children[0];
                 each(component.$elements, function(element) {
-                    parentElement.insertBefore(element, nextSibling);
-                    previousElements.push(element);
+                    child.appendChild(element);
                 });
+                parentElement.insertBefore(child, nextSibling);
+                previousElements.push(child);
             })
         }
     });
