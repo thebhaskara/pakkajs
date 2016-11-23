@@ -33,7 +33,8 @@
         "ratechange", "reset", "resize", "scroll", "search", "seeked",
         "seeking", "select", "selectstart", "show", "stalled", "submit",
         "suspend", "timeupdate", "toggle", "volumechange", "waiting",
-        "webkitfullscreenchange", "webkitfullscreenerror", "wheel"
+        "webkitfullscreenchange", "webkitfullscreenerror", "wheel", "touchstart",
+        "touchend", "touchmove", "touchcancel",
     ];
 
     // this is the base pakka function you have been looking for
@@ -197,6 +198,20 @@
                     delete context[key];
                 })
                 delete context;
+            }
+
+            // watcher
+            context.$watch = function(propertyName, callback) {
+                // linkerFunction = pakka.linkerFunction = 
+                // function(element, context, namespace, callback, name) {
+                // }
+                linkerFunction(null, context, 'watch', function(el, prop, ctx) {
+                    var oldValue = ctx.$get(prop);
+                    return function(newValue) {
+                        callback && callback(newValue, oldValue);
+                        oldValue = newValue;
+                    }
+                }, propertyName);
             }
 
             // initializing the controller
@@ -380,18 +395,18 @@
         },
 
         // addClass function from youmightnotneedjquery.com
-        addClass = pakka.addClass = function(el, className) {
-            if (el.classList) {
-                addClass = function(el, className) {
-                    el.classList.add(className);
-                }
-            } else {
-                addClass = function(el, className) {
-                    el.className += ' ' + className;
-                }
-            }
-            addClass(el, className);
-        },
+        // addClass = pakka.addClass = function(el, className) {
+        //     if (el.classList) {
+        //         addClass = function(el, className) {
+        //             el.classList.add(className);
+        //         }
+        //     } else {
+        //         addClass = function(el, className) {
+        //             el.className += ' ' + className;
+        //         }
+        //     }
+        //     addClass(el, className);
+        // },
 
         // empty function from youmightnotneedjquery.com
         empty = pakka.empty = function(el) {
@@ -403,21 +418,24 @@
         // can bind all the binders given by add binder
         linkBinders = pakka.linkBinders = function(element, context, namespace) {
             each(binders, function(callback, name) {
-                var els = element.querySelectorAll('[' + name + ']'),
-                    linkerFunction = function(el) {
-                        var prop = el.getAttribute(name);
-                        var bindingsList = context.$propertyBindings[prop] || [];
-                        bindingsList.push({
-                            namespace: namespace,
-                            callback: callback(el, prop, context)
-                        });
-                        context.$propertyBindings[prop] = bindingsList;
-                    };
+                var els = element.querySelectorAll('[' + name + ']');
                 if (element.hasAttribute(name)) {
-                    linkerFunction(element);
+                    linkerFunction(element, context, namespace, callback, name);
                 }
-                each(els, linkerFunction);
+                each(els, function(el) {
+                    linkerFunction(el, context, namespace, callback, name);
+                });
             });
+        },
+
+        linkerFunction = pakka.linkerFunction = function(element, context, namespace, callback, name) {
+            var prop = element ? element.getAttribute(name) : name;
+            var bindingsList = context.$propertyBindings[prop] || [];
+            bindingsList.push({
+                namespace: namespace,
+                callback: callback(element, prop, context)
+            });
+            context.$propertyBindings[prop] = bindingsList;
         },
 
         // attaches events
@@ -586,6 +604,62 @@
             })
         }
     });
+
+    var addClass = pakka.addClass = function(el, className) {
+        // add class
+        if (el.classList) {
+            addClass = pakka.addClass = function(el1, className1) {
+                el1.classList.add(className1);
+            }
+        } else {
+            addClass = pakka.addClass = function(el1, className1) {
+                el1.className += ' ' + className1;
+            }
+        }
+        addClass(el, className);
+    }
+
+    var removeClass = pakka.removeClass = function(el, className) {
+        // remove class
+        if (el.classList) {
+            removeClass = pakka.removeClass = function(el1, className1) {
+                el1.classList.remove(className1);
+            }
+        } else {
+            removeClass = pakka.removeClass = function(el1, className1) {
+                el1.className = el1.className.replace(new RegExp('(^|\\b)' +
+                    className1.split(' ').join('|') + '(\\b|$)', 'gi'), ' ');
+            }
+        }
+        removeClass(el, className);
+    }
+
+    pakka.addBinder('bind-class', function(el, prop, context) {
+        var classesMap = {};
+        return function(value) {
+            pakka.each(classesMap, function(v, key) {
+                classesMap[key] = false;
+            })
+            if (pakka.isArray(value)) {
+                pakka.each(value, function(item) {
+                    classesMap[item] = true;
+                })
+            } else if (pakka.isString(value)) {
+                classesMap[value] = true;
+            } else if (pakka.isObject(value)) {
+                pakka.each(value, function(v, key) {
+                    classesMap[key] = v;
+                });
+            }
+            pakka.each(classesMap, function(isTrue, key) {
+                if (isTrue === true) {
+                    addClass(el, key);
+                } else {
+                    removeClass(el, key);
+                }
+            })
+        }
+    })
 
     return pakka;
 }));
