@@ -221,7 +221,7 @@
             var component = new options.controller(context);
         }
     }
-
+    pakka.version = "1.1.2";
     var select = pakka.select = function(elements) {
             if (isString(elements)) {
                 elements = document.querySelectorAll(elements);
@@ -371,25 +371,34 @@
         },
 
         // binding evaluator
-        apply = pakka.apply = function(context, prop, value) {
+        apply = pakka.apply = function(context, prop, value, dontPropagate) {
             if (isUndefined(prop)) {
                 // in case prop is not provided
                 // evaluates everything
                 each(context.$propertyBindings, function(list, propName) {
-                    apply(context, propName, context.get(propName));
+                    apply(context, propName, context.$get(propName));
                 })
             } else {
                 each(context.$propertyBindings[prop], function(binding) {
                     binding.callback(value);
                 });
-                if (isArray(value)) {
-                    each(value, function(v, i) {
-                        apply(context, prop + '[' + i + ']', v);
-                    })
-                } else if (isSimpleObject(value)) {
-                    each(value, function(v, k) {
-                        apply(context, prop + '.' + k, v);
-                    })
+
+                if (dontPropagate !== true){
+                    if (isArray(value)) {
+                        each(value, function(v, i) {
+                            apply(context, prop + '[' + i + ']', v);
+                        })
+                    } else if (isSimpleObject(value)) {
+                        each(value, function(v, k) {
+                            apply(context, prop + '.' + k, v);
+                        })
+                    }
+                }
+                var propList = prop.split('.');
+                propList.pop();
+                if(propList.length > 0){
+                    var propName = propList.join('.');
+                    apply(context, propName, context.$get(propName), true);
                 }
             }
         },
