@@ -43,3 +43,12 @@ TodoApp.$set('todoComponents', list1);
 setTimeout(function() {
     TodoApp.$set('todoComponents', list2);
 }, 10000);
+
+var asd = {
+    a: {
+        b: 20
+    }
+}
+TodoApp.$set('asd', asd);
+TodoApp.$set('asd.a.c', 30);
+
