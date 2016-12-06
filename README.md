@@ -237,6 +237,8 @@ Binds a pakka component instance to the element.
 e.g. `<div bind-component="myComponent" ></div>`
 use `context.set('myComponent', new SomePakkaComponent())` in your controller to bind this component.
 
+#### `bind-components`
+
 
 ### Events binding
 
