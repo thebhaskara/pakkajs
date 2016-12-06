@@ -78,7 +78,7 @@
             // associated with this property
             context.$set = function(prop, value) {
                 eval('context.$properties.' + prop + '= value;');
-                apply(context, prop, value);
+                apply(context, prop, value, true, true);
             };
 
             // initializing components name and id into its context
@@ -371,7 +371,7 @@
         },
 
         // binding evaluator
-        apply = pakka.apply = function(context, prop, value, dontPropagate) {
+        apply = pakka.apply = function(context, prop, value, propagateToChildren, propagateToParent) {
             if (isUndefined(prop)) {
                 // in case prop is not provided
                 // evaluates everything
@@ -383,22 +383,24 @@
                     binding.callback(value);
                 });
 
-                if (dontPropagate !== true){
+                if (propagateToChildren === true) {
                     if (isArray(value)) {
                         each(value, function(v, i) {
-                            apply(context, prop + '[' + i + ']', v);
+                            apply(context, prop + '[' + i + ']', v, true, false);
                         })
                     } else if (isSimpleObject(value)) {
                         each(value, function(v, k) {
-                            apply(context, prop + '.' + k, v);
+                            apply(context, prop + '.' + k, v, true, false);
                         })
                     }
                 }
-                var propList = prop.split('.');
-                propList.pop();
-                if(propList.length > 0){
-                    var propName = propList.join('.');
-                    apply(context, propName, context.$get(propName), true);
+                if (propagateToParent === true) {
+                    var propList = prop.split('.');
+                    propList.pop();
+                    if (propList.length > 0) {
+                        var propName = propList.join('.');
+                        apply(context, propName, context.$get(propName), false, true);
+                    }
                 }
             }
         },
@@ -669,6 +671,11 @@
             })
         }
     })
+
+    pakka.addBinder('bind-element', function(el, prop, context) {
+        context.$set(prop, el);
+        return function() { }
+    });
 
     return pakka;
 }));
