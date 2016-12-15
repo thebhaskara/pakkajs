@@ -20,6 +20,12 @@
     <h1>Todo app bhaskara</h1>
     <section class="todoApp">
         <div bind-component="todoComponent"></div>
+        <button click-handle="addItem">add item</button>
+        <button click-handle="shuffleItems">shuffle items</button>
+        <button click-handle="shuffleItemsTimer">shuffle items timer</button>
+        <button click-handle="removeItem">remove item</button>
+        <div bind-text="count"></div>
+        <div bind-text="time"></div>
         <ul>
             <li bind-components="todoComponents"></li>
         </ul>

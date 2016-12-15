@@ -591,6 +591,7 @@
         var parentElement = el.parentElement,
             nextSibling = el.nextSibling,
             tempElement = document.createElement('div'),
+            containerElements = [],
             previousElements = [];
 
         tempElement.appendChild(el);
@@ -600,19 +601,30 @@
             if (isUndefined(components) || !isArray(components)) {
                 return;
             }
-            each(previousElements, function(element) {
-                parentElement.removeChild(element);
-            })
-            previousElements = [];
-            each(components, function(component) {
-                tempElement.innerHTML = elementString;
-                var child = tempElement.children[0];
-                each(component.$elements, function(element) {
-                    child.appendChild(element);
-                });
-                parentElement.insertBefore(child, nextSibling);
-                previousElements.push(child);
-            })
+            var containerElementsLength = containerElements.length,
+                componentsLength = components.length;
+            if (containerElementsLength > componentsLength) {
+                for (var i = componentsLength; i < containerElementsLength; i++) {
+                    parentElement.removeChild(containerElements[i]);
+                }
+                containerElements.splice(componentsLength);
+            } else if (containerElementsLength < componentsLength) {
+                for (var i = containerElementsLength; i < componentsLength; i++) {
+                    tempElement.innerHTML = elementString;
+                    var child = tempElement.children[0];
+                    parentElement.appendChild(child);
+                    containerElements.push(child);
+                }
+            }
+
+            each(components, function(component, index){
+                var container = containerElements[index];
+                if(container.children[0] != component.$elements[0]){
+                    each(component.$elements, function(element){
+                        container.appendChild(element);
+                    });
+                }
+            });
         }
     });
 
@@ -674,7 +686,7 @@
 
     pakka.addBinder('bind-element', function(el, prop, context) {
         context.$set(prop, el);
-        return function() { }
+        return function() {}
     });
 
     return pakka;
