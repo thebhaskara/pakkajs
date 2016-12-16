@@ -1,4 +1,5 @@
 var TodoApp = pakka.create('.todoApp'),
+    globcount = 0,
     TodoItem = pakka({
         name: 'todo-item',
         html: '<div>' +
@@ -13,7 +14,7 @@ var TodoApp = pakka.create('.todoApp'),
                 'in progress',
                 'done',
             ]
-            context.$set('text1', parseInt(Math.random() * 100));
+            context.$set('text1', globcount++);
             context.toggleStatus = function() {
                 var $status = context.$get('status'),
                     $index = -1;
@@ -34,19 +35,9 @@ var TodoApp = pakka.create('.todoApp'),
     });
 TodoApp.addItem = function(event) {
     event.preventDefault();
-    list1.push(new TodoItem());
-    list1.push(new TodoItem());
-    list1.push(new TodoItem());
-    list1.push(new TodoItem());
-    list1.push(new TodoItem());
-    list1.push(new TodoItem());
-    list1.push(new TodoItem());
-    list1.push(new TodoItem());
-    list1.push(new TodoItem());
-    list1.push(new TodoItem());
-    list1.push(new TodoItem());
-    list1.push(new TodoItem());
-    list1.push(new TodoItem());
+    for (var i = 0; i < (Math.random() * 100); i++) {
+        list1.push(new TodoItem());
+    }
     var time = new Date().getTime();
     TodoApp.$set('todoComponents', list1);
     TodoApp.$set('time', new Date().getTime() - time);
@@ -54,7 +45,9 @@ TodoApp.addItem = function(event) {
 }
 TodoApp.removeItem = function(event) {
     event.preventDefault();
-    list1.pop();
+    for (var i = 0; i < (Math.random() * 100); i++) {
+        list1.pop();
+    }
     var time = new Date().getTime();
     TodoApp.$set('todoComponents', list1);
     TodoApp.$set('time', new Date().getTime() - time);
