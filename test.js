@@ -112,3 +112,7 @@ var asd = {
 }
 TodoApp.$set('asd', asd);
 TodoApp.$set('asd.a.c', 30);
+
+TodoApp.$set('myArray', [{ name: 'Bhaskara' }, { name: 'Divakara' }]);
+TodoApp.$set('myArray[0].name', 'status');
+TodoApp.$set('myArray[0].pappu', 'cant dance');

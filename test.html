@@ -19,6 +19,21 @@
 <body>
     <h1>Todo app bhaskara</h1>
     <section class="todoApp">
+        <div>
+            <ul>
+                <li bind-repeat="myArray" var-name="item" var-index="index">
+                    <div>
+                        <div bind-repeat="item" var-name="aaa" var-key="baaa">
+                            <span bind-text="baaa"></span>
+                            <span> - </span>
+                            <span bind-text="aaa"></span>
+                        </div>
+                    </div>
+                    <span> - </span>
+                    <span bind-text="index"></span>
+                </li>
+            </ul>
+        </div>
         <div bind-component="todoComponent"></div>
         <button click-handle="addItem">add item</button>
         <button click-handle="shuffleItems">shuffle items</button>
@@ -29,10 +44,14 @@
         <ul>
             <li bind-components="todoComponents"></li>
         </ul>
-        <div bind-text="asd"></div>
+        <div bind-repeat="asd" var-name="val" var-key="key">
+            <span bind-text="key"></span>
+            <span> - </span>
+            <span bind-text="val"></span>
+        </div>
     </section>
     <script src="node_modules/lodash/lodash.js"></script>
-    <script src="src/pakka.js"></script>
+    <script src="pakka.js"></script>
     <script src="test.js"></script>
 </body>
 

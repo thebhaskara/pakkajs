@@ -501,6 +501,80 @@
             timeoutHandles[namespace] = timeoutHandle;
         };
 
+    addBinder('bind-repeat', function(el, prop, context) {
+        var parentElement = el.parentElement,
+            nextSibling = el.nextSibling,
+            tempElement = document.createElement('div'),
+            nameAttr = el.getAttribute('var-name'),
+            keyAttr = el.getAttribute('var-key'),
+            indexAttr = el.getAttribute('var-index'),
+            containerElements = [],
+            map = {},
+            BaseComponent = pakka({
+                html: el.innerHTML,
+            });
+
+        el.innerHTML = '';
+        tempElement.appendChild(el);
+        var elementString = tempElement.innerHTML;
+
+        return function(input) {
+            if (isUndefined(input) || (!isArray(input) && !isObject(input))) {
+                return;
+            }
+            var containerElementsLength = containerElements.length,
+                keys = lodash.keys(input),
+                isInputArray = isArray(input),
+                inputLength = isInputArray ? input.length : keys.length;
+            if (containerElementsLength > inputLength) {
+                for (var i = inputLength; i < containerElementsLength; i++) {
+                    parentElement.removeChild(containerElements[i]);
+                }
+                containerElements.splice(inputLength);
+            } else if (containerElementsLength < inputLength) {
+                for (var i = containerElementsLength; i < inputLength; i++) {
+                    tempElement.innerHTML = elementString;
+                    var child = tempElement.children[0];
+                    parentElement.appendChild(child);
+                    containerElements.push(child);
+                }
+            }
+
+            var i = 0;
+            each(input, function(item, index) {
+                var container = containerElements[i],
+                    component = map[index];
+                if (!component) {
+                    component = new BaseComponent();
+                    if (isInputArray) {
+                        context.$watch(prop + '[' + index + ']', function(value) {
+                            component.$set(nameAttr, value);
+                            component.$set(indexAttr, index);
+                        })
+                    } else {
+                        context.$watch(prop + '.' + index, function(value) {
+                            component.$set(nameAttr, value);
+                            component.$set(keyAttr, index);
+                        })
+                    }
+                }
+                if (container.children[0] != component.$elements[0]) {
+                    each(component.$elements, function(element) {
+                        container.appendChild(element);
+                    });
+                }
+                component.$set(nameAttr, item);
+                if (isInputArray) {
+                    component.$set(indexAttr, index);
+                } else {
+                    component.$set(keyAttr, index);
+                }
+                map[index] = component;
+                i++;
+            });
+        }
+    });
+
     var htmlBinderCounter = 0;
     addBinder('bind-html', function(el, prop, context) {
         var binderId = 'bind-html-' + propertyBinderCounter++;
