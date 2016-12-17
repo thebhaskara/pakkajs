@@ -701,21 +701,21 @@
     pakka.addBinder('bind-class', function(el, prop, context) {
         var classesMap = {};
         return function(value) {
-            pakka.each(classesMap, function(v, key) {
+            each(classesMap, function(v, key) {
                 classesMap[key] = false;
             })
-            if (pakka.isArray(value)) {
-                pakka.each(value, function(item) {
+            if (isArray(value)) {
+                each(value, function(item) {
                     classesMap[item] = true;
                 })
-            } else if (pakka.isString(value)) {
+            } else if (isString(value)) {
                 classesMap[value] = true;
-            } else if (pakka.isObject(value)) {
-                pakka.each(value, function(v, key) {
+            } else if (isObject(value)) {
+                each(value, function(v, key) {
                     classesMap[key] = v;
                 });
             }
-            pakka.each(classesMap, function(isTrue, key) {
+            each(classesMap, function(isTrue, key) {
                 if (isTrue === true) {
                     addClass(el, key);
                 } else {
