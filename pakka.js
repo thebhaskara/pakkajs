@@ -220,7 +220,7 @@
                 var component = new options.controller(context);
             }
         }
-    pakka.version = "1.1.5";
+    pakka.version = "1.1.6";
     var select = pakka.select = function(elements) {
             if (isString(elements)) {
                 elements = document.querySelectorAll(elements);
@@ -535,7 +535,10 @@
                 for (var i = containerElementsLength; i < inputLength; i++) {
                     tempElement.innerHTML = elementString;
                     var child = tempElement.children[0];
-                    parentElement.appendChild(child);
+                    // dont use appendChild
+                    // as appendChild fails to cover the scenario 
+                    // when the element is in between other elements
+                    parentElement.insertBefore(child, nextSibling);
                     containerElements.push(child);
                 }
             }
@@ -560,6 +563,7 @@
                 }
                 if (container.children[0] != component.$elements[0]) {
                     each(component.$elements, function(element) {
+                        empty(container);
                         container.appendChild(element);
                     });
                 }
@@ -594,20 +598,64 @@
         }
     });
 
-    var propertyBinderCounter = 0;
+    var propertyBinderCounter = 0,
+        getValueText = function(element) {
+            return element.value;
+        },
+        setValueText = function(element, value) {
+            element.value = value;
+        },
+        getValueCheckbox = function(element) {
+            return element.checked;
+        },
+        setValueCheckbox = function(element, value) {
+            element.checked = value;
+        },
+        getValueSelect = function(element) {
+            return element.values;
+        },
+        setValueSelect = function(element, value) {
+            element.values = value;
+        },
+        getValueDiv = function(element) {
+            return element.innerText;
+        },
+        setValueDiv = function(element, value) {
+            element.innerText = value;
+        };
     addBinder('bind-property', function(el, prop, context) {
         var binderId = 'bind-property-' + propertyBinderCounter++,
             handler = function(event) {
-                executeDelayedOnce(function() {
-                    context.$set(prop, event.target.value);
-                }, binderId);
+                // console.log(event);
+                // executeDelayedOnce(function() {
+                var key = event.keyCode;
+                if (key != 16 && key != 17 && key != 18) {
+                    context.$set(prop, getValue(event.target));
+                }
+                // }, binderId);
+            },
+            getValue = getValueText,
+            setValue = setValueText;
+        each(el.attributes, function(attribute) {
+            if (attribute.name == "type" && attribute.value == "checkbox") {
+                getValue = getValueCheckbox;
+                setValue = setValueCheckbox;
+                return false;
             }
-        each(['change', 'keyup', 'paste'], function(eventName) {
+        })
+        if (el.tagName == "SELECT") {
+            getValue = getValueSelect;
+            setValue = setValueSelect;
+        } else if (el.tagName == "DIV") {
+            getValue = getValueDiv;
+            setValue = setValueDiv;
+        }
+        each(['change', 'keyup'], function(eventName) {
             attachEvent(eventName, el, handler, context, binderId);
         });
         return function(value) {
             if (!isUndefined(value)) {
-                el.value = value;
+                setValue(el, value);
             }
         }
     });
@@ -653,7 +701,10 @@
                 for (var i = containerElementsLength; i < componentsLength; i++) {
                     tempElement.innerHTML = elementString;
                     var child = tempElement.children[0];
-                    parentElement.appendChild(child);
+                    // dont use appendChild
+                    // as appendChild fails to cover the scenario 
+                    // when the element is in between other elements
+                    parentElement.insertBefore(child, nextSibling);
                     containerElements.push(child);
                 }
             }
@@ -661,6 +712,7 @@
             each(components, function(component, index) {
                 var container = containerElements[index];
                 if (container.children[0] != component.$elements[0]) {
+                    empty(container);
                     each(component.$elements, function(element) {
                         container.appendChild(element);
                     });

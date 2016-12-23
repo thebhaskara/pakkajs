@@ -1,212 +1,226 @@
 (function(root, factory) {
     if (typeof define === "function" && define.amd) {
-        define([], factory);
+        define(['lodash'], factory);
     } else if (typeof module === "object" && module.exports) {
-        module.exports = factory();
+        var lodash = require('lodash');
+        module.exports = factory(lodash);
     } else {
-        root.pakka = factory();
+        root.pakka = factory(_);
     }
-}(this, function() {
+}(this, function(lodash) {
 
-    // this element is needed to insert stylesheets dynamically
     var headEl = document.getElementsByTagName('head')[0],
-        // this lets us assign unique names to components
         componentNameCounter = 0,
-        // this lets us assign unique names to each instances of components
-        componentIdCounter = 0;
+        componentIdCounter = 0,
 
-    // this is a list events known to chrome
-    // this actually is an overkill,
-    // so we gave another optimal solution to this. 
-    // you can set only required events in pakka.eventsList (to apply globally)
-    // or even in your personal instance (to apply locally to the instance)
-    var eventsList = [
-        "abort", "beforecopy", "beforecut", "beforepaste",
-        "blur", "cancel", "canplay", "canplaythrough", "change", "click",
-        "close", "contextmenu", "copy", "cuechange", "cut", "dblclick",
-        "drag", "dragend", "dragenter", "dragleave", "dragover", "dragstart",
-        "drop", "durationchange", "emptied", "ended", "error", "focus",
-        "input", "invalid", "keydown", "keypress", "keyup", "load",
-        "loadeddata", "loadedmetadata", "loadstart", "mousedown", "mouseenter",
-        "mouseleave", "mousemove", "mouseout", "mouseover", "mouseup",
-        "mousewheel", "paste", "pause", "play", "playing", "progress",
-        "ratechange", "reset", "resize", "scroll", "search", "seeked",
-        "seeking", "select", "selectstart", "show", "stalled", "submit",
-        "suspend", "timeupdate", "toggle", "volumechange", "waiting",
-        "webkitfullscreenchange", "webkitfullscreenerror", "wheel"
-    ];
+        // this is a list events known to chrome
+        // this actually is an overkill.
+        // So for performance, 
+        // you can set only required events in pakka.eventsList (to apply globally)
+        // or even in your personal instance (to apply locally to the instance)
+        eventsList = [
+            "abort", "beforecopy", "beforecut", "beforepaste",
+            "blur", "cancel", "canplay", "canplaythrough", "change", "click",
+            "close", "contextmenu", "copy", "cuechange", "cut", "dblclick",
+            "drag", "dragend", "dragenter", "dragleave", "dragover", "dragstart",
+            "drop", "durationchange", "emptied", "ended", "error", "focus",
+            "input", "invalid", "keydown", "keypress", "keyup", "load",
+            "loadeddata", "loadedmetadata", "loadstart", "mousedown", "mouseenter",
+            "mouseleave", "mousemove", "mouseout", "mouseover", "mouseup",
+            "mousewheel", "paste", "pause", "play", "playing", "progress",
+            "ratechange", "reset", "resize", "scroll", "search", "seeked",
+            "seeking", "select", "selectstart", "show", "stalled", "submit",
+            "suspend", "timeupdate", "toggle", "volumechange", "waiting",
+            "webkitfullscreenchange", "webkitfullscreenerror", "wheel", "touchstart",
+            "touchend", "touchmove", "touchcancel",
+        ],
 
-    // this is the base pakka function you have been looking for
-    var pakka = function(options) {
+        // Base Class for all instances
+        pakka = function(options) {
 
-        // components name is being set
-        // you can specify it in the options
-        // or we would set a random component name
-        var componentName = options.name ||
-            'component-' + componentNameCounter++;
-
-        // well this helps us in checking whether
-        // the components style is added or not
-        var componentStyleElement;
-
-        if (!options.controller) {
-            options.controller = function() {};
-        }
-
-        return function() {
-
-            // instance of the context
-            var context = this,
-
+            // components name is being set
+            // you can specify it in the options
+            // or we would set a random component name
+            var componentName = options.name ||
+                'component-' + componentNameCounter++,
                 // well this helps us in checking whether
-                // the components instances style is added or not
-                instanceStyleElement,
+                // the components style is added or not
+                componentStyleElement;
 
-                // initializing the properties object
-                properties = context.$properties = {};
-
-            // getter to get property's value
-            context.$get = function(prop) {
-                try {
-                    return eval('context.$properties.' + prop);
-                } catch (e) {}
-            };
-
-            // setter to set property's value
-            // and also evaluates the bindings to the html
-            // associated with this property
-            context.$set = function(prop, value) {
-                eval('context.$properties.' + prop + '= value;');
-                apply(context, prop, value);
-            };
-
-            // initializing components name and id into its context
-            context.$name = componentName;
-            context.$options = options;
-            var contextId = context.$id = componentName + '-' + componentIdCounter++;
-
-            // you can provide css from options to add components personal style.
-            // this adds components style sheet if it has not already loaded.
-            if (isUndefined(componentStyleElement)) {
-                componentStyleElement = addStyleSheet(options.css || '',
-                    componentName, componentStyleElement);
+            if (!options.controller) {
+                options.controller = function() {};
             }
 
-            // a function is provided in the context to 
-            // set instances personal style dynamically
-            context.$setCss = function(css) {
-                instanceStyleElement = addStyleSheet(css || '',
-                    context.$componentId, instanceStyleElement);
+            return function() {
+
+                // instance of the context
+                var context = this,
+
+                    // well this helps us in checking whether
+                    // the components instances style is added or not
+                    instanceStyleElement,
+
+                    // initializing the properties object
+                    properties = context.$properties = {};
+
+                // getter to get property's value
+                context.$get = function(prop) {
+                    try {
+                        // return eval('context.$properties.' + prop);
+                        return lodash.get(context.$properties, prop);
+                    } catch (e) {}
+                };
+
+                // setter to set property's value
+                // and also evaluates the bindings to the html
+                // associated with this property
+                context.$set = function(prop, value) {
+                    // eval('context.$properties.' + prop + '= value;');
+                    lodash.set(context.$properties, prop, value);
+                    apply(context, prop, value, true, true);
+                };
+
+                // initializing components name and id into its context
+                context.$name = componentName;
+                context.$options = options;
+                var contextId = context.$id = componentName + '-' + componentIdCounter++;
+
+                // you can provide css from options to add components personal style.
+                // this adds components style sheet if it has not already loaded.
+                if (isUndefined(componentStyleElement)) {
+                    componentStyleElement = addStyleSheet(options.css || '',
+                        componentName, componentStyleElement);
+                }
+
+                // a function is provided in the context to 
+                // set instances personal style dynamically
+                context.$setCss = function(css) {
+                    instanceStyleElement = addStyleSheet(css || '',
+                        context.$componentId, instanceStyleElement);
+                }
+
+
+                // this function is available on the instance 
+                // for setting elements dynamically
+                context.$setElements = function(elements) {
+
+                    // in case these things are already set
+                    detachEvents(context);
+                    removePropertyBindings(context);
+
+                    // this keeps the map of properties along with their
+                    // list of element and bindings respectively.
+                    // this acts as cache for fast execution of binings
+                    context.$propertyBindings = {};
+
+                    // this keeps the list of listeners that are attached
+                    // this acts as a cache and also will be used to detach 
+                    // listeners while destroying the object
+                    context.$listeners = [];
+
+                    // elements noticed are available on the context
+                    context.$elements = elements;
+
+                    // following code is responsible to glue stuff up
+                    each(elements, function(element) {
+
+                        // adding this components personalized class
+                        addClass(element, componentName);
+                        addClass(element, contextId);
+
+                        // generates property bindings
+                        linkBinders(element, context, contextId);
+
+                        // attaching known events
+                        attachEvents(element, context, contextId);
+                    });
+                }
+
+                // personal function to attach an event
+                context.$attachEvent = function(event, element,
+                    handler, namespace) {
+                    attachEvent(event, element,
+                        handler, context, namespace);
+                }
+
+                // this function is available on the instance 
+                // for setting html dynamically
+                // but it is your responsibility to 
+                // append these elements to DOM
+                context.$setHtml = function(html) {
+                    var div = document.createElement('div');
+                    div.innerHTML = options.html || '<div></div>';
+
+                    // bug-fix
+                    // the HTMLCollection returned was acting weird 
+                    // incase of bind-components sorting.
+                    context.$setElements(select(div.children));
+                }
+
+                if (!isUndefined(options.elements)) {
+
+                    // you can provide elements using document.querySelectorAll(selector)
+                    // in order to bind with existing DOM
+                    // don't worry document.querySelectorAll works for IE8 too.
+                    // in cases where elements is not set from options 
+                    // following code takes care of it
+                    context.$setElements(options.elements);
+
+                } else {
+
+                    // you can provide html string in the options
+                    // and the following makes the DOM elements for you
+                    // Note that this will create elements only.
+                    // you are responsible to attach it where you need.
+                    context.$setHtml(options.html);
+
+                }
+
+                // detaches all the attached DOM events
+                context.$detachEvents = function(namespace) {
+                    detachEvents(context, namespace);
+                }
+
+                // removes all the bindings
+                context.$removePropertyBindings = function() {
+                    removePropertyBindings(context);
+                }
+
+                // destroys the object
+                context.$destroy = function() {
+
+                    detachEvents(context);
+                    removePropertyBindings(context);
+
+                    // deleting remaining stuff
+                    each(context, function(val, key) {
+                        delete context[key];
+                    })
+                    delete context;
+                }
+
+                // watcher
+                context.$watch = function(propertyName, callback) {
+                    // linkerFunction = pakka.linkerFunction = 
+                    // function(element, context, namespace, callback, name) {
+                    // }
+                    linkerFunction(null, context, 'watch', function(el, prop, ctx) {
+                        var oldValue = ctx.$get(prop);
+                        return function(newValue) {
+                            callback && callback(newValue, oldValue);
+                            oldValue = newValue;
+                        }
+                    }, propertyName);
+                }
+
+                // initializing the controller
+                // you can see that we are passing the context
+                // so all the above functionalities are available 
+                // to the controller.
+                var component = new options.controller(context);
             }
-
-
-            // this function is available on the instance 
-            // for setting elements dynamically
-            context.$setElements = function(elements) {
-
-                // in case these things are already set
-                detachEvents(context);
-                removePropertyBindings(context);
-
-                // this keeps the map of properties along with their
-                // list of element and bindings respectively.
-                // this acts as cache for fast execution of binings
-                context.$propertyBindings = {};
-
-                // this keeps the list of listeners that are attached
-                // this acts as a cache and also will be used to detach 
-                // listeners while destroying the object
-                context.$listeners = [];
-
-                // elements noticed are available on the context
-                context.$elements = elements;
-
-                // following code is responsible to glue stuff up
-                each(elements, function(element) {
-
-                    // adding this components personalized class
-                    addClass(element, componentName);
-                    addClass(element, contextId);
-
-                    // generates property bindings
-                    linkBinders(element, context, contextId);
-
-                    // attaching known events
-                    attachEvents(element, context, contextId);
-                });
-            }
-
-            // personal function to attach an event
-            context.$attachEvent = function(event, element,
-                handler, namespace) {
-                attachEvent(event, element,
-                    handler, context, namespace);
-            }
-
-            // this function is available on the instance 
-            // for setting html dynamically
-            // but it is your responsibility to 
-            // append these elements to DOM
-            context.$setHtml = function(html) {
-                var div = document.createElement('div');
-                div.innerHTML = options.html || '<div></div>';
-
-                // bug-fix
-                // the HTMLCollection returned was acting weird 
-                // incase of bind-components sorting.
-                context.$setElements(select(div.children));
-            }
-
-            if (!isUndefined(options.elements)) {
-
-                // you can provide elements using document.querySelectorAll(selector)
-                // in order to bind with existing DOM
-                // don't worry document.querySelectorAll works for IE8 too.
-                // in cases where elements is not set from options 
-                // following code takes care of it
-                context.$setElements(options.elements);
-
-            } else {
-
-                // you can provide html string in the options
-                // and the following makes the DOM elements for you
-                // Note that this will create elements only.
-                // you are responsible to attach it where you need.
-                context.$setHtml(options.html);
-
-            }
-
-            // detaches all the attached DOM events
-            context.$detachEvents = function(namespace) {
-                detachEvents(context, namespace);
-            }
-
-            // removes all the bindings
-            context.$removePropertyBindings = function() {
-                removePropertyBindings(context);
-            }
-
-            // destroys the object
-            context.$destroy = function() {
-
-                detachEvents(context);
-                removePropertyBindings(context);
-
-                // deleting remaining stuff
-                each(context, function(val, key) {
-                    delete context[key];
-                })
-                delete context;
-            }
-
-            // initializing the controller
-            // you can see that we are passing the context
-            // so all the above functionalities are available 
-            // to the controller.
-            var component = new options.controller(context);
         }
-    }
-
+    pakka.version = "1.1.6";
     var select = pakka.select = function(elements) {
             if (isString(elements)) {
                 elements = document.querySelectorAll(elements);
@@ -241,20 +255,13 @@
         },
 
         // from underscorejs
-        isString = pakka.isString = function(obj) {
-            return Object.prototype.toString.call(obj) === '[object String]';
-        },
+        isString = pakka.isString = lodash.isString,
 
         // from underscorejs
-        isUndefined = pakka.isUndefined = function(obj) {
-            return obj === void 0;
-        },
+        isUndefined = pakka.isUndefined = lodash.isUndefined,
 
         // from underscorejs
-        isObject = pakka.isObject = function(obj) {
-            var type = typeof obj;
-            return type === 'function' || type === 'object' && !!obj;
-        },
+        isObject = pakka.isObject = lodash.isObject,
 
         // from underscorejs
         simpleObject = {},
@@ -267,30 +274,10 @@
         },
 
         // from underscorejs
-        isArray = pakka.isArray = function(obj) {
-            return toString.call(obj) === '[object Array]';
-        },
+        isArray = pakka.isArray = lodash.isArray,
 
         // source https://github.com/toddmotto/foreach/blob/master/src/foreach.js
-        each = pakka.each = function(collection, callback, scope) {
-            if (!isUndefined(collection)) {
-                if (Object.prototype.toString.call(collection) === '[object Object]') {
-                    for (var prop in collection) {
-                        if (Object.prototype.hasOwnProperty.call(collection, prop)) {
-                            if (callback.call(scope, collection[prop], prop, collection) === false) {
-                                return;
-                            }
-                        }
-                    }
-                } else {
-                    for (var i = 0, len = collection.length; i < len; i++) {
-                        if (callback.call(scope, collection[i], i, collection) === false) {
-                            return;
-                        }
-                    }
-                }
-            }
-        },
+        each = pakka.each = lodash.each,
 
         // you can  detach events completely
         // or you can specify a namespace for only that to be removed
@@ -356,42 +343,53 @@
         },
 
         // binding evaluator
-        apply = pakka.apply = function(context, prop, value) {
+        apply = pakka.apply = function(context, prop, value, propagateToChildren, propagateToParent) {
             if (isUndefined(prop)) {
                 // in case prop is not provided
                 // evaluates everything
                 each(context.$propertyBindings, function(list, propName) {
-                    apply(context, propName, context.get(propName));
+                    apply(context, propName, context.$get(propName));
                 })
             } else {
                 each(context.$propertyBindings[prop], function(binding) {
                     binding.callback(value);
                 });
-                if (isArray(value)) {
-                    each(value, function(v, i) {
-                        apply(context, prop + '[' + i + ']', v);
-                    })
-                } else if (isSimpleObject(value)) {
-                    each(value, function(v, k) {
-                        apply(context, prop + '.' + k, v);
-                    })
+
+                if (propagateToChildren === true) {
+                    if (isArray(value)) {
+                        each(value, function(v, i) {
+                            apply(context, prop + '[' + i + ']', v, true, false);
+                        })
+                    } else if (isSimpleObject(value)) {
+                        each(value, function(v, k) {
+                            apply(context, prop + '.' + k, v, true, false);
+                        })
+                    }
+                }
+                if (propagateToParent === true) {
+                    var propList = prop.split('.');
+                    propList.pop();
+                    if (propList.length > 0) {
+                        var propName = propList.join('.');
+                        apply(context, propName, context.$get(propName), false, true);
+                    }
                 }
             }
         },
 
         // addClass function from youmightnotneedjquery.com
-        addClass = pakka.addClass = function(el, className) {
-            if (el.classList) {
-                addClass = function(el, className) {
-                    el.classList.add(className);
-                }
-            } else {
-                addClass = function(el, className) {
-                    el.className += ' ' + className;
-                }
-            }
-            addClass(el, className);
-        },
+        // addClass = pakka.addClass = function(el, className) {
+        //     if (el.classList) {
+        //         addClass = function(el, className) {
+        //             el.classList.add(className);
+        //         }
+        //     } else {
+        //         addClass = function(el, className) {
+        //             el.className += ' ' + className;
+        //         }
+        //     }
+        //     addClass(el, className);
+        // },
 
         // empty function from youmightnotneedjquery.com
         empty = pakka.empty = function(el) {
@@ -403,21 +401,24 @@
         // can bind all the binders given by add binder
         linkBinders = pakka.linkBinders = function(element, context, namespace) {
             each(binders, function(callback, name) {
-                var els = element.querySelectorAll('[' + name + ']'),
-                    linkerFunction = function(el) {
-                        var prop = el.getAttribute(name);
-                        var bindingsList = context.$propertyBindings[prop] || [];
-                        bindingsList.push({
-                            namespace: namespace,
-                            callback: callback(el, prop, context)
-                        });
-                        context.$propertyBindings[prop] = bindingsList;
-                    };
+                var els = element.querySelectorAll('[' + name + ']');
                 if (element.hasAttribute(name)) {
-                    linkerFunction(element);
+                    linkerFunction(element, context, namespace, callback, name);
                 }
-                each(els, linkerFunction);
+                each(els, function(el) {
+                    linkerFunction(el, context, namespace, callback, name);
+                });
             });
+        },
+
+        linkerFunction = pakka.linkerFunction = function(element, context, namespace, callback, name) {
+            var prop = element ? element.getAttribute(name) : name;
+            var bindingsList = context.$propertyBindings[prop] || [];
+            bindingsList.push({
+                namespace: namespace,
+                callback: callback(element, prop, context)
+            });
+            context.$propertyBindings[prop] = bindingsList;
         },
 
         // attaches events
@@ -500,6 +501,84 @@
             timeoutHandles[namespace] = timeoutHandle;
         };
 
+    addBinder('bind-repeat', function(el, prop, context) {
+        var parentElement = el.parentElement,
+            nextSibling = el.nextSibling,
+            tempElement = document.createElement('div'),
+            nameAttr = el.getAttribute('var-name'),
+            keyAttr = el.getAttribute('var-key'),
+            indexAttr = el.getAttribute('var-index'),
+            containerElements = [],
+            map = {},
+            BaseComponent = pakka({
+                html: el.innerHTML,
+            });
+
+        el.innerHTML = '';
+        tempElement.appendChild(el);
+        var elementString = tempElement.innerHTML;
+
+        return function(input) {
+            if (isUndefined(input) || (!isArray(input) && !isObject(input))) {
+                return;
+            }
+            var containerElementsLength = containerElements.length,
+                keys = lodash.keys(input),
+                isInputArray = isArray(input),
+                inputLength = isInputArray ? input.length : keys.length;
+            if (containerElementsLength > inputLength) {
+                for (var i = inputLength; i < containerElementsLength; i++) {
+                    parentElement.removeChild(containerElements[i]);
+                }
+                containerElements.splice(inputLength);
+            } else if (containerElementsLength < inputLength) {
+                for (var i = containerElementsLength; i < inputLength; i++) {
+                    tempElement.innerHTML = elementString;
+                    var child = tempElement.children[0];
+                    // dont use appendChild
+                    // as appendChild fails to cover the scenario 
+                    // when the element is in between other elements
+                    parentElement.insertBefore(child, nextSibling);
+                    containerElements.push(child);
+                }
+            }
+
+            var i = 0;
+            each(input, function(item, index) {
+                var container = containerElements[i],
+                    component = map[index];
+                if (!component) {
+                    component = new BaseComponent();
+                    if (isInputArray) {
+                        context.$watch(prop + '[' + index + ']', function(value) {
+                            component.$set(nameAttr, value);
+                            component.$set(indexAttr, index);
+                        })
+                    } else {
+                        context.$watch(prop + '.' + index, function(value) {
+                            component.$set(nameAttr, value);
+                            component.$set(keyAttr, index);
+                        })
+                    }
+                }
+                if (container.children[0] != component.$elements[0]) {
+                    each(component.$elements, function(element) {
+                        empty(container);
+                        container.appendChild(element);
+                    });
+                }
+                component.$set(nameAttr, item);
+                if (isInputArray) {
+                    component.$set(indexAttr, index);
+                } else {
+                    component.$set(keyAttr, index);
+                }
+                map[index] = component;
+                i++;
+            });
+        }
+    });
+
     var htmlBinderCounter = 0;
     addBinder('bind-html', function(el, prop, context) {
         var binderId = 'bind-html-' + propertyBinderCounter++;
@@ -519,20 +598,64 @@
         }
     });
 
-    var propertyBinderCounter = 0;
+    var propertyBinderCounter = 0,
+        getValueText = function(element) {
+            return element.value;
+        },
+        setValueText = function(element, value) {
+            element.value = value;
+        },
+        getValueCheckbox = function(element) {
+            return element.checked;
+        },
+        setValueCheckbox = function(element, value) {
+            element.checked = value;
+        },
+        getValueSelect = function(element) {
+            return element.values;
+        },
+        setValueSelect = function(element, value) {
+            element.values = value;
+        },
+        getValueDiv = function(element) {
+            return element.innerText;
+        },
+        setValueDiv = function(element, value) {
+            element.innerText = value;
+        };
     addBinder('bind-property', function(el, prop, context) {
         var binderId = 'bind-property-' + propertyBinderCounter++,
             handler = function(event) {
-                executeDelayedOnce(function() {
-                    context.$set(prop, event.target.value);
-                }, binderId);
+                // console.log(event);
+                // executeDelayedOnce(function() {
+                var key = event.keyCode;
+                if (key != 16 && key != 17 && key != 18) {
+                    context.$set(prop, getValue(event.target));
+                }
+                // }, binderId);
+            },
+            getValue = getValueText,
+            setValue = setValueText;
+        each(el.attributes, function(attribute) {
+            if (attribute.name == "type" && attribute.value == "checkbox") {
+                getValue = getValueCheckbox;
+                setValue = setValueCheckbox;
+                return false;
             }
-        each(['change', 'keyup', 'paste'], function(eventName) {
+        })
+        if (el.tagName == "SELECT") {
+            getValue = getValueSelect;
+            setValue = setValueSelect;
+        } else if (el.tagName == "DIV") {
+            getValue = getValueDiv;
+            setValue = setValueDiv;
+        }
+        each(['change', 'keyup'], function(eventName) {
             attachEvent(eventName, el, handler, context, binderId);
         });
         return function(value) {
             if (!isUndefined(value)) {
-                el.value = value;
+                setValue(el, value);
             }
         }
     });
@@ -554,15 +677,11 @@
         }
     });
 
-    // this logic needs to be improved 
-    // to cater different scenarios like...
-    // removing one element from list, 
-    // sorting the list, etc...
     addBinder('bind-components', function(el, prop, context) {
         var parentElement = el.parentElement,
             nextSibling = el.nextSibling,
             tempElement = document.createElement('div'),
-            previousElements = [];
+            containerElements = [];
 
         tempElement.appendChild(el);
         var elementString = tempElement.innerHTML;
@@ -571,20 +690,96 @@
             if (isUndefined(components) || !isArray(components)) {
                 return;
             }
-            each(previousElements, function(element) {
-                parentElement.removeChild(element);
+            var containerElementsLength = containerElements.length,
+                componentsLength = components.length;
+            if (containerElementsLength > componentsLength) {
+                for (var i = componentsLength; i < containerElementsLength; i++) {
+                    parentElement.removeChild(containerElements[i]);
+                }
+                containerElements.splice(componentsLength);
+            } else if (containerElementsLength < componentsLength) {
+                for (var i = containerElementsLength; i < componentsLength; i++) {
+                    tempElement.innerHTML = elementString;
+                    var child = tempElement.children[0];
+                    // dont use appendChild
+                    // as appendChild fails to cover the scenario 
+                    // when the element is in between other elements
+                    parentElement.insertBefore(child, nextSibling);
+                    containerElements.push(child);
+                }
+            }
+
+            each(components, function(component, index) {
+                var container = containerElements[index];
+                if (container.children[0] != component.$elements[0]) {
+                    empty(container);
+                    each(component.$elements, function(element) {
+                        container.appendChild(element);
+                    });
+                }
+            });
+        }
+    });
+
+    var addClass = pakka.addClass = function(el, className) {
+        // add class
+        if (el.classList) {
+            addClass = pakka.addClass = function(el1, className1) {
+                el1.classList.add(className1);
+            }
+        } else {
+            addClass = pakka.addClass = function(el1, className1) {
+                el1.className += ' ' + className1;
+            }
+        }
+        addClass(el, className);
+    }
+
+    var removeClass = pakka.removeClass = function(el, className) {
+        // remove class
+        if (el.classList) {
+            removeClass = pakka.removeClass = function(el1, className1) {
+                el1.classList.remove(className1);
+            }
+        } else {
+            removeClass = pakka.removeClass = function(el1, className1) {
+                el1.className = el1.className.replace(new RegExp('(^|\\b)' +
+                    className1.split(' ').join('|') + '(\\b|$)', 'gi'), ' ');
+            }
+        }
+        removeClass(el, className);
+    }
+
+    pakka.addBinder('bind-class', function(el, prop, context) {
+        var classesMap = {};
+        return function(value) {
+            each(classesMap, function(v, key) {
+                classesMap[key] = false;
             })
-            previousElements = [];
-            each(components, function(component) {
-                tempElement.innerHTML = elementString;
-                var child = tempElement.children[0];
-                each(component.$elements, function(element) {
-                    child.appendChild(element);
+            if (isArray(value)) {
+                each(value, function(item) {
+                    classesMap[item] = true;
+                })
+            } else if (isString(value)) {
+                classesMap[value] = true;
+            } else if (isObject(value)) {
+                each(value, function(v, key) {
+                    classesMap[key] = v;
                 });
-                parentElement.insertBefore(child, nextSibling);
-                previousElements.push(child);
+            }
+            each(classesMap, function(isTrue, key) {
+                if (isTrue === true) {
+                    addClass(el, key);
+                } else {
+                    removeClass(el, key);
+                }
             })
         }
+    })
+
+    pakka.addBinder('bind-element', function(el, prop, context) {
+        context.$set(prop, el);
+        return function() {}
     });
 
     return pakka;

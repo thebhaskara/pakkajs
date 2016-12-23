@@ -93,20 +93,21 @@
 <body>
     <nav>
         <a href="index.html">Documentation</a>
-        <span>Simple Todo App</span>
-        <a href="todo2app.html">Todo App 2</a>
+        <a href="todoapp.html">Simple Todo App</a>
+        <span>Todo App 2</span>
     </nav>
     <article id="todoapp" class="markdown-body entry-content" itemprop="text">
-        <h1>Simple todo app</h1>
-        <p>This is a normal Todo Application.</p>
-        <p>Following are additional keyboard functions...</p>
+        <h1>Todo App 2</h1>
+        <p>This is an advanced Todo Application.</p>
+        <p>Following are interesting keyboard functions...</p>
         <ul>
             <li><strong><code>Enter/Return</code></strong> creates a new note next to it.</li>
             <li><strong><code>Backspace/Delete</code></strong> removes present note when text becomes empty.</li>
+            <li><strong><code>Tab</code></strong> makes the focussed note to be child of its previous note.</li>
+            <li><strong><code>Shift + Tab</code></strong> makes the focussed note to be next sibiling of the parent note.</li>
         </ul>
         <div>
-            <button click-handle="addItem">Add</button>
-            <button click-handle="clearAll">Clear All</button>
+            <button click-handle="addItem">Add Item</button>
             <button click-handle="selectAll">Select All</button>
             <button click-handle="invertSelection">Invert Selection</button>
             <button click-handle="deselectAll">Deselect All</button>
@@ -120,18 +121,25 @@
             <div class="text-box" bind-element="inputElement" keydown-handle="checkKey" bind-class="stateClass" contenteditable="true" bind-property="text"></div>
             <button class="remove-button" click-handle="remove">&times;</button>
         </div>
+        <div class="child-components">
+            <div bind-components="todoItems"></div>
+        </div>
     </script>
     <style type="text/css">
     .todo-item {
         padding-top: 10px;
     }
     
+    .todo-item.child-components {
+        padding-left: 20px;
+    }
+    
     .todo-item .remove-button {
-        visibility: hidden;
+        display: none;
     }
     
     .todo-item:hover .remove-button {
-        visibility: visible;
+        display: inline-block;
     }
     
     .todo-item .text-box {
@@ -155,7 +163,7 @@
     </style>
     <script type="text/javascript" src="lodash.js"></script>
     <script type="text/javascript" src="pakka.js"></script>
-    <script type="text/javascript" src="todoapp.js"></script>
+    <script type="text/javascript" src="todo2app.js"></script>
 </body>
 
 </html>

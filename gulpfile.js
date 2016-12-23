@@ -9,6 +9,7 @@ gulp.task('default', gulpsync.sync([
     'clean',
     'uglify',
     'zip',
+    'copy.to.docs',
 ]));
 
 gulp.task('clean', function() {
@@ -26,4 +27,12 @@ gulp.task('zip', function() {
     return gulp.src('./pakka.min.js')
         .pipe(gzip())
         .pipe(gulp.dest('./'));
+});
+
+gulp.task('copy.to.docs', function() {
+    return gulp.src([
+            './pakka.js',
+            './node_modules/lodash/lodash.js'
+        ])
+        .pipe(gulp.dest('./docs/'));
 });

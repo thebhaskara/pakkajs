@@ -3,36 +3,88 @@ var app = pakka.create({
 });
 
 var todoItem = pakka({
-    html: '<div><input type="checkbox" bind-component=""><input type="text"><button click-handle="remove">&times;</button></div>',
+    name: 'todo-item',
+    html: document.getElementById('todo-item-template').innerHTML,
     controller: function(context) {
         var removeCallback = function() {};
         context.remove = function(event) {
-        	event && event.preventDefault();
-            removeCallback(context);
+            event && event.preventDefault();
+            removeItem(context);
         }
-        context.bindRemoveCallback = function(callback) {
-        	removeCallback = callback;
+        context.$watch('isSelected', function(value) {
+            if (value == true) {
+                context.$set('stateClass', {
+                    'selected': true
+                })
+            } else {
+                context.$set('stateClass', {
+                    'selected': false
+                })
+            }
+        });
+        context.checkKey = function(event) {
+            var key = event.keyCode || event.charCode;
+
+            if (key == 13) {
+                event.preventDefault();
+                app.addItem(null, context);
+                return false;
+            } else if ((key == 8 || key == 46) && (!event.target.innerText || event.target.innerText == "")) {
+                event.preventDefault();
+                removeItem(context);
+                return false;
+            }
+        }
+        context.focus = function() {
+            var el = context.$get('inputElement'),
+                text = context.$get('text') || "",
+                textLength = text.length;
+            if (textLength > 0) {
+                var range = document.createRange(),
+                    sel = window.getSelection();
+                range.setStart(el.childNodes[0], textLength);
+                range.collapse(true);
+                sel.removeAllRanges();
+                sel.addRange(range);
+            }
+            el.focus();
         }
     }
 })
 
-var todoItems = [];
+var todoItems = [],
+    removeItem = function(presentItem) {
+        var newItems = [],
+            prevItem;
+        pakka.each(todoItems, function(item, index) {
+            if (presentItem != item) {
+                newItems.push(item);
+            } else if (index > 0) {
+                prevItem = todoItems[index - 1];
+            }
+        });
+        todoItems = newItems;
+        app.$set('todoItems', todoItems);
+        prevItem && prevItem.focus();
+    };
 
-app.addItem = function(event) {
+app.addItem = function(event, currentItem) {
     event && event.preventDefault();
     var item = new todoItem();
-    item.bindRemoveCallback(function(presentItem){
-    	var newItems = [];
-    	pakka.each(todoItems, function(item){
-    		if(presentItem!=item){
-    			newItems.push(item);
-    		}
-    	});
-    	todoItems = newItems;
-    	app.$set('todoItems', todoItems);
-    })
-    todoItems.push(item);
+    if (currentItem) {
+        var newItems = [];
+        pakka.each(todoItems, function(i) {
+            newItems.push(i);
+            if (i == currentItem) {
+                newItems.push(item);
+            }
+        });
+        todoItems = newItems;
+    } else {
+        todoItems.push(item);
+    }
     app.$set('todoItems', todoItems);
+    item.focus();
 }
 
 
@@ -46,6 +98,28 @@ app.clearAll = function(event) {
     app.$set('todoItems', todoItems);
 }
 
-app.addItem();
-app.addItem();
+
+app.selectAll = function(event) {
+    event.preventDefault();
+    pakka.each(todoItems, function(item) {
+        item.$set('isSelected', true);
+    })
+}
+
+
+app.invertSelection = function(event) {
+    event.preventDefault();
+    pakka.each(todoItems, function(item) {
+        item.$set('isSelected', !item.$get('isSelected'));
+    })
+}
+
+
+app.deselectAll = function(event) {
+    event.preventDefault();
+    pakka.each(todoItems, function(item) {
+        item.$set('isSelected', false);
+    })
+}
+
 app.addItem();

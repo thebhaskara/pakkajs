@@ -1,6 +1,6 @@
 {
   "name": "pakkajs",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "description": "The idea is to provide few pakka simple UI tools.",
   "main": "pakka.js",
   "directories": {
