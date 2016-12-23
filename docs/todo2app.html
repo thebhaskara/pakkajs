@@ -108,9 +108,6 @@
         </ul>
         <div>
             <button click-handle="addItem">Add Item</button>
-            <button click-handle="selectAll">Select All</button>
-            <button click-handle="invertSelection">Invert Selection</button>
-            <button click-handle="deselectAll">Deselect All</button>
         </div>
         <div bind-components="todoItems">
         </div>
@@ -135,11 +132,11 @@
     }
     
     .todo-item .remove-button {
-        display: none;
+        visibility: hidden;
     }
     
     .todo-item:hover .remove-button {
-        display: inline-block;
+        visibility: visible;
     }
     
     .todo-item .text-box {

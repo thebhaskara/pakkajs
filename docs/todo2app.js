@@ -9,7 +9,8 @@ var todoItem = pakka({
         var removeCallback = function() {};
         context.remove = function(event) {
             event && event.preventDefault();
-            removeItem(context);
+            // removeItem(context);
+            detach(context);
         }
         context.$watch('isSelected', function(value) {
             if (value == true) {
@@ -27,73 +28,38 @@ var todoItem = pakka({
 
             if (key == 13) {
                 event.preventDefault();
-                context.parent.lastItem = addItem(context);
+                var item = new todoItem();
+                appendAfter(context.parent, item, context);
+                item.focus();
                 return false;
             } else if ((key == 8 || key == 46) && (!event.target.innerText || event.target.innerText == "")) {
                 event.preventDefault();
-                removeItem(context);
-                if (context.parent.lastItem) {
-                    renderItems(context.parent.lastItem);
-                    if (key != 46 && context.prevItem) {
-                        context.prevItem.focus();
-                    } else if (key == 46 && context.nextItem) {
-                        context.nextItem.focus(true);
-                    } else if (context.parent != app && context.parent.lastItem) {
-                        context.parent.lastItem.focus(key == 46);
-                    }
-                } else {
-                    setParent(context.parent, []);
-                    if (context.parent != app) {
-                        context.parent.focus(key == 46);
-                    }
-                }
+                var nextItem = context.nextItem,
+                    prevItem = context.prevItem;
+
+                detach(context);
+
+                key == 46 && nextItem && nextItem.focus();
+                key == 8 && prevItem && prevItem.focus();
+
                 return false;
             } else if (key == 9 && !event.shiftKey) {
                 event.preventDefault();
-                if (context.prevItem) {
-                    var prevItem = context.prevItem,
-                        nextItem = context.nextItem,
-                        parent = prevItem;
-                    prevItem.nextItem = nextItem;
-                    nextItem && (nextItem.prevItem = prevItem);
-
-                    context.prevItem = parent.lastItem;
-                    context.nextItem = null;
-                    context.parent = parent;
-
-                    parent.lastItem = context;
-
-                    renderItems(parent);
-                    renderItems(context);
+                var parent = context.prevItem;
+                if (parent) {
+                    detach(context);
+                    appendAfter(parent, context);
                 }
                 return false;
             } else if (key == 9 && event.shiftKey) {
                 event.preventDefault();
-                if (context.parent != app) {
-                    var prevItem = context.prevItem,
-                        nextItem = context.nextItem,
-                        parent = context.parent;
-
-                    if (parent.lastItem == context) {
-                        parent.lastItem = prevItem;
+                var after = context.parent;
+                if (after != app) {
+                    var parent = after.parent;
+                    if (parent) {
+                        detach(context);
+                        appendAfter(parent, context, after);
                     }
-
-                    prevItem && (prevItem.nextItem = nextItem);
-                    nextItem && (nextItem.prevItem = prevItem);
-
-                    context.prevItem = parent;
-                    context.nextItem = parent.nextItem;
-                    context.parent = parent.parent;
-
-                    parent.nextItem && (parent.nextItem.prevItem = context);
-                    parent.nextItem = context;
-
-                    if (parent.lastItem) {
-                        renderItems(parent.lastItem);
-                    } else {
-                        setParent(parent, []);
-                    }
-                    renderItems(context);
                 }
                 return false;
             }
@@ -121,88 +87,64 @@ var todoItems = [];
 
 app.addItem = function(event) {
     event && event.preventDefault();
-    app.lastItem = addItem(app.lastItem);
-}
-
-var addItem = function(prevItem) {
     var item = new todoItem();
-    item.parent = (prevItem && prevItem.parent) || app;
-    item.prevItem = prevItem;
-    item.nextItem = prevItem && prevItem.nextItem;
-    prevItem && (prevItem.nextItem = item);
-    item.nextItem && (item.nextItem.prevItem = item);
-    renderItems(item);
+    appendAfter(app, item);
     item.focus();
-    return item;
-}
+};
 
-var renderItems = function(item) {
-    var list = [],
-        parent = item.parent,
-        prevItem = item.prevItem,
-        nextItem = item.nextItem;
-    list.push(item);
-    while (prevItem) {
-        list.unshift(prevItem);
-        prevItem = prevItem.prevItem;
+var appendAfter = function(parent, item, after) {
+    after = after || parent.lastItem;
+    if (after) {
+        item.nextItem = after.nextItem;
+        after.nextItem = item;
+        item.prevItem = after;
+    } else {
+        item.prevItem = null;
+        item.nextItem = null;
     }
-    while (nextItem) {
-        list.push(nextItem);
-        nextItem = nextItem.nextItem;
+    if(parent.lastItem == after) {
+        parent.lastItem = item;
     }
-    setParent(parent, list);
-}
-var setParent = function(parent, list) {
-    parent.$set('todoItems', list);
-}
+    item.parent = parent;
+    renderItems(parent, item);
+};
 
-var removeItem = function(item) {
+var detach = function(item) {
     var prevItem = item.prevItem,
-        nextItem = item.nextItem;
+        nextItem = item.nextItem,
+        parent = item.parent;
+
+    item.parent = null;
     prevItem && (prevItem.nextItem = nextItem);
     nextItem && (nextItem.prevItem = prevItem);
-    if (item.parent.lastItem == item) {
-        item.parent.lastItem = prevItem;
+
+    item.nextItem = null;
+    item.prevItem = null;
+    item.parent = null;
+
+    if (item == parent.lastItem) {
+        parent.lastItem = nextItem || prevItem;
     }
-    if (item.parent.lastItem) {
-        renderItems(item.parent.lastItem);
-    } else {
-        setParent(item.parent, []);
+
+    renderItems(parent, prevItem || nextItem || parent.lastItem);
+};
+
+var renderItems = function(parent, item) {
+    var list = [];
+    if (item) {
+        var prevItem = item.prevItem,
+            nextItem = item.nextItem;
+        list.push(item);
+        while (prevItem) {
+            list.unshift(prevItem);
+            prevItem = prevItem.prevItem;
+        }
+        while (nextItem) {
+            list.push(nextItem);
+            nextItem = nextItem.nextItem;
+        }
     }
-}
-
-app.clearAll = function(event) {
-    event.preventDefault();
-    // pakka.each(todoItems, function(item) {
-    //     item.$destroy();
-    //     delete item;
-    // })
-    // todoItems = [];
-    // app.$set('todoItems', todoItems);
-}
-
-
-app.selectAll = function(event) {
-    event.preventDefault();
-    pakka.each(todoItems, function(item) {
-        item.$set('isSelected', true);
-    })
-}
-
-
-app.invertSelection = function(event) {
-    event.preventDefault();
-    pakka.each(todoItems, function(item) {
-        item.$set('isSelected', !item.$get('isSelected'));
-    })
-}
-
-
-app.deselectAll = function(event) {
-    event.preventDefault();
-    pakka.each(todoItems, function(item) {
-        item.$set('isSelected', false);
-    })
-}
+    parent.$set('todoItems', list);
+};
 
 app.addItem();
