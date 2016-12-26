@@ -77,7 +77,7 @@ var todoItem = pakka({
                 }
                 context.focus();
                 return false;
-            } else if (key == 38) {
+            } else if (key == 38 && !event.shiftKey) {
                 event.preventDefault();
                 var prevItem = context.prevItem;
                 if (!prevItem) {
@@ -89,7 +89,7 @@ var todoItem = pakka({
                 }
                 prevItem && prevItem != app && prevItem.focus();
                 return false;
-            } else if (key == 40) {
+            } else if (key == 40 && !event.shiftKey) {
                 event.preventDefault();
                 var nextItem;
                 if (!nextItem) {
@@ -111,6 +111,28 @@ var todoItem = pakka({
                     nextItem = nextItem.nextItem;
                 }
                 nextItem && nextItem.focus();
+                return false;
+            } else if (key == 38 && event.shiftKey) {
+                event.preventDefault();
+                var prevItem = context.prevItem;
+                // if (!prevItem) {
+                //     prevItem = context.parent;
+                // }
+                if (prevItem && prevItem != app) {
+                    detach(context);
+                    appendBefore(prevItem.parent, context, prevItem);
+                    context.focus();
+                }
+                return false;
+            } else if (key == 40 && event.shiftKey) {
+                event.preventDefault();
+                var nextItem = context.nextItem;
+                // if(!nextItem)
+                if (nextItem) {
+                    detach(context);
+                    appendAfter(nextItem.parent, context, nextItem);
+                    context.focus();
+                }
                 return false;
             }
         };
@@ -141,6 +163,28 @@ app.addItem = function(event) {
     appendAfter(app, item);
     item.focus();
 };
+
+var appendBefore = function(parent, item, before) {
+    if (!before) {
+        before = parent.lastItem;
+        while (before.prevItem) {
+            before = before.prevItem;
+        }
+    }
+    if (before) {
+        item.prevItem = before.prevItem;
+        before.prevItem = item;
+        item.nextItem = before;
+    } else {
+        item.prevItem = null;
+        item.nextItem = null;
+    }
+    // if (parent.lastItem == after) {
+    //     parent.lastItem = item;
+    // }
+    item.parent = parent;
+    renderItems(parent, item);
+}
 
 var appendAfter = function(parent, item, after) {
     after = after || parent.lastItem;
