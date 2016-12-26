@@ -23,6 +23,20 @@ var todoItem = pakka({
                 })
             }
         });
+        context.copyToClipboard = function(event) {
+            if (document.selection) {
+                var range = document.body.createTextRange();
+                range.moveToElementText(context.$get('inputElement'));
+                range.select().createTextRange();
+                document.execCommand("Copy");
+            } else if (window.getSelection) {
+                var range = document.createRange();
+                range.selectNode(context.$get('inputElement'));
+                window.getSelection().removeAllRanges();
+                window.getSelection().addRange(range);
+                document.execCommand("Copy");
+            }
+        }
         context.checkKey = function(event) {
             var key = event.keyCode || event.charCode;
             if (key == 13) {
@@ -73,7 +87,7 @@ var todoItem = pakka({
                         prevItem = prevItem.lastItem;
                     }
                 }
-                prevItem && prevItem!=app && prevItem.focus();
+                prevItem && prevItem != app && prevItem.focus();
                 return false;
             } else if (key == 40) {
                 event.preventDefault();
