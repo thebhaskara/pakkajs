@@ -625,11 +625,13 @@
         };
     addBinder('bind-property', function(el, prop, context) {
         var binderId = 'bind-property-' + propertyBinderCounter++,
+            isHandlerCalled = false,
             handler = function(event) {
                 // console.log(event);
                 // executeDelayedOnce(function() {
                 var key = event.keyCode;
                 if (key != 16 && key != 17 && key != 18) {
+                    isHandlerCalled = true;
                     context.$set(prop, getValue(event.target));
                 }
                 // }, binderId);
@@ -654,8 +656,13 @@
             attachEvent(eventName, el, handler, context, binderId);
         });
         return function(value) {
-            if (!isUndefined(value)) {
-                setValue(el, value);
+            // fix for firefox
+            if (isHandlerCalled) {
+                isHandlerCalled = false;
+            } else {
+                if (!isUndefined(value)) {
+                    setValue(el, value);
+                }
             }
         }
     });

@@ -25,7 +25,7 @@ var todoItem = pakka({
         });
         context.checkKey = function(event) {
             var key = event.keyCode || event.charCode;
-
+            console.log('check key started');
             if (key == 13) {
                 event.preventDefault();
                 var item = new todoItem();
@@ -50,6 +50,7 @@ var todoItem = pakka({
                     detach(context);
                     appendAfter(parent, context);
                 }
+                context.focus();
                 return false;
             } else if (key == 9 && event.shiftKey) {
                 event.preventDefault();
@@ -61,9 +62,11 @@ var todoItem = pakka({
                         appendAfter(parent, context, after);
                     }
                 }
+                context.focus();
                 return false;
             }
-        }
+            console.log('check key ended');
+        };
         context.focus = function(isStart) {
             var el = context.$get('inputElement'),
                 text = context.$get('text') || "",
