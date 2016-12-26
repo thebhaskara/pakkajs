@@ -25,7 +25,6 @@ var todoItem = pakka({
         });
         context.checkKey = function(event) {
             var key = event.keyCode || event.charCode;
-            console.log('check key started');
             if (key == 13) {
                 event.preventDefault();
                 var item = new todoItem();
@@ -64,8 +63,42 @@ var todoItem = pakka({
                 }
                 context.focus();
                 return false;
+            } else if (key == 38) {
+                event.preventDefault();
+                var prevItem = context.prevItem;
+                if (!prevItem) {
+                    prevItem = context.parent;
+                } else {
+                    while (prevItem.lastItem) {
+                        prevItem = prevItem.lastItem;
+                    }
+                }
+                prevItem && prevItem!=app && prevItem.focus();
+                return false;
+            } else if (key == 40) {
+                event.preventDefault();
+                var nextItem;
+                if (!nextItem) {
+                    nextItem = context.lastItem;
+                    if (nextItem) {
+                        while (nextItem.prevItem) {
+                            nextItem = nextItem.prevItem;
+                        }
+                    }
+                }
+                if (!nextItem) {
+                    nextItem = context.nextItem;
+                }
+                if (!nextItem) {
+                    nextItem = context;
+                    while (!nextItem.nextItem && nextItem.parent) {
+                        nextItem = nextItem.parent;
+                    }
+                    nextItem = nextItem.nextItem;
+                }
+                nextItem && nextItem.focus();
+                return false;
             }
-            console.log('check key ended');
         };
         context.focus = function(isStart) {
             var el = context.$get('inputElement'),
@@ -105,7 +138,7 @@ var appendAfter = function(parent, item, after) {
         item.prevItem = null;
         item.nextItem = null;
     }
-    if(parent.lastItem == after) {
+    if (parent.lastItem == after) {
         parent.lastItem = item;
     }
     item.parent = parent;

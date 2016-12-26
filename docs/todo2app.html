@@ -105,6 +105,8 @@
             <li><strong><code>Backspace/Delete</code></strong> removes present note when text becomes empty.</li>
             <li><strong><code>Tab</code></strong> makes the focussed note to be child of its previous note.</li>
             <li><strong><code>Shift + Tab</code></strong> makes the focussed note to be next sibiling of the parent note.</li>
+            <li><strong><code>Up arrow</code></strong> focusses the previous note.</li>
+            <li><strong><code>Down arrow</code></strong> focusses the next note.</li>
         </ul>
         <div>
             <button click-handle="addItem">Add Item</button>
@@ -113,8 +115,8 @@
         </div>
     </article>
     <script type="text/template" id="todo-item-template">
-        <div>
-            <input type="checkbox" bind-property="isSelected">
+        <div class="input-area">
+            <input class="checkbox" type="checkbox" bind-property="isSelected">
             <div class="text-box" bind-element="inputElement" keydown-handle="checkKey" bind-class="stateClass" contenteditable="true" bind-property="text"></div>
             <button class="remove-button" click-handle="remove">&times;</button>
         </div>
@@ -128,14 +130,16 @@
     }
     
     .todo-item.child-components {
-        padding-left: 20px;
+        padding-left: 30px;
     }
     
-    .todo-item .remove-button {
+    .todo-item.input-area .remove-button,
+    .todo-item.input-area .checkbox {
         visibility: hidden;
     }
     
-    .todo-item:hover .remove-button {
+    .todo-item.input-area:hover .remove-button,
+    .todo-item.input-area:hover .checkbox {
         visibility: visible;
     }
     
