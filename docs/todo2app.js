@@ -7,12 +7,20 @@ var todoItem = pakka({
     html: document.getElementById('todo-item-template').innerHTML,
     controller: function(context) {
         var removeCallback = function() {};
+        context.$set('data', {
+            isSelected: false,
+            text: '',
+            notes: []
+        });
         context.remove = function(event) {
             event && event.preventDefault();
             // removeItem(context);
             detach(context);
         }
-        context.$watch('isSelected', function(value) {
+        context.$watch('data.text', function(value) {
+            saveData();
+        });
+        context.$watch('data.isSelected', function(value) {
             if (value == true) {
                 context.$set('stateClass', {
                     'selected': true
@@ -22,6 +30,7 @@ var todoItem = pakka({
                     'selected': false
                 })
             }
+            saveData();
         });
         context.copyToClipboard = function(event) {
             if (document.selection) {
@@ -44,6 +53,7 @@ var todoItem = pakka({
                 var item = new todoItem();
                 appendAfter(context.parent, item, context);
                 item.focus();
+                saveData();
                 return false;
             } else if ((key == 8 || key == 46) && (!event.target.innerText || event.target.innerText == "")) {
                 event.preventDefault();
@@ -55,6 +65,7 @@ var todoItem = pakka({
                 key == 46 && nextItem && nextItem.focus();
                 key == 8 && prevItem && prevItem.focus();
 
+                saveData();
                 return false;
             } else if (key == 9 && !event.shiftKey) {
                 event.preventDefault();
@@ -64,6 +75,7 @@ var todoItem = pakka({
                     appendAfter(parent, context);
                 }
                 context.focus();
+                saveData();
                 return false;
             } else if (key == 9 && event.shiftKey) {
                 event.preventDefault();
@@ -76,6 +88,7 @@ var todoItem = pakka({
                     }
                 }
                 context.focus();
+                saveData();
                 return false;
             } else if (key == 38 && !event.shiftKey) {
                 event.preventDefault();
@@ -88,6 +101,7 @@ var todoItem = pakka({
                     }
                 }
                 prevItem && prevItem != app && prevItem.focus();
+                saveData();
                 return false;
             } else if (key == 40 && !event.shiftKey) {
                 event.preventDefault();
@@ -111,6 +125,7 @@ var todoItem = pakka({
                     nextItem = nextItem.nextItem;
                 }
                 nextItem && nextItem.focus();
+                saveData();
                 return false;
             } else if (key == 38 && event.shiftKey) {
                 event.preventDefault();
@@ -122,6 +137,7 @@ var todoItem = pakka({
                     detach(context);
                     appendBefore(prevItem.parent, context, prevItem);
                     context.focus();
+                    saveData();
                 }
                 return false;
             } else if (key == 40 && event.shiftKey) {
@@ -132,13 +148,14 @@ var todoItem = pakka({
                     detach(context);
                     appendAfter(nextItem.parent, context, nextItem);
                     context.focus();
+                    saveData();
                 }
                 return false;
             }
         };
         context.focus = function(isStart) {
             var el = context.$get('inputElement'),
-                text = context.$get('text') || "",
+                text = context.$get('data.text') || "",
                 textLength = isStart ? 0 : text.length;
             if (textLength > 0) {
                 var range = document.createRange(),
@@ -186,7 +203,7 @@ var appendBefore = function(parent, item, before) {
     renderItems(parent, item);
 }
 
-var appendAfter = function(parent, item, after) {
+var appendAfter = function(parent, item, after, isSilent) {
     after = after || parent.lastItem;
     if (after) {
         item.nextItem = after.nextItem;
@@ -200,7 +217,7 @@ var appendAfter = function(parent, item, after) {
         parent.lastItem = item;
     }
     item.parent = parent;
-    renderItems(parent, item);
+    renderItems(parent, item, isSilent);
 };
 
 var detach = function(item) {
@@ -223,22 +240,72 @@ var detach = function(item) {
     renderItems(parent, prevItem || nextItem || parent.lastItem);
 };
 
-var renderItems = function(parent, item) {
-    var list = [];
+var getData = function(item) {
+    return item.$properties.data;
+};
+
+var renderItems = function(parent, item, isSilent) {
+    var list = [],
+        data = isSilent ? [] : parent.$properties.data.notes;
+    while (data.length > 0) {
+        data.pop();
+    }
     if (item) {
         var prevItem = item.prevItem,
             nextItem = item.nextItem;
         list.push(item);
+        data.push(getData(item));
         while (prevItem) {
             list.unshift(prevItem);
+            data.unshift(getData(prevItem));
             prevItem = prevItem.prevItem;
         }
         while (nextItem) {
             list.push(nextItem);
+            data.push(getData(nextItem));
             nextItem = nextItem.nextItem;
         }
     }
     parent.$set('todoItems', list);
+    // parent.$properties.notes = data;
+    // if (parent != app) {
+
+    // }
+    // console.log(JSON.stringify(app.$properties.data.notes));
+    // saveData();
 };
 
-app.addItem();
+var saveData = function() {},
+    setData = function(parent, notes) {
+        pakka.each(notes, function(data) {
+            var item = new todoItem();
+            item.$set('data', data);
+            if (data.notes.length > 0) {
+                setData(item, data.notes);
+            }
+            appendAfter(parent, item, null, true);
+        })
+    },
+    startFresh = function() {
+        app.$set('data', {
+            notes: []
+        })
+        app.addItem();
+    };
+if (localStorage) {
+    saveData = function() {
+        localStorage.setItem('todoapp2', JSON.stringify(app.$properties.data.notes))
+    }
+    data = localStorage.getItem('todoapp2');
+    if (data) {
+        data = JSON.parse(data);
+        app.$set('data', {
+            notes: data
+        });
+        setData(app, data);
+    } else {
+        startFresh();
+    }
+} else {
+    startFresh();
+}

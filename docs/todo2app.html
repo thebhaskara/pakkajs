@@ -118,8 +118,8 @@
     </article>
     <script type="text/template" id="todo-item-template">
         <div class="hoverable-area">
-            <input class="show-on-hover" type="checkbox" bind-property="isSelected">
-            <div class="text-box" bind-element="inputElement" keydown-handle="checkKey" bind-class="stateClass" contenteditable="true" bind-property="text"></div>
+            <input class="show-on-hover" type="checkbox" bind-property="data.isSelected">
+            <div class="text-box" bind-element="inputElement" keydown-handle="checkKey" bind-class="stateClass" contenteditable="true" bind-property="data.text"></div>
             <button class="show-on-hover" click-handle="copyToClipboard">Copy</button>
             <button class="show-on-hover remove-button" click-handle="remove">&times;</button>
         </div>
