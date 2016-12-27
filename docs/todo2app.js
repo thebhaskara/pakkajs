@@ -130,9 +130,6 @@ var todoItem = pakka({
             } else if (key == 38 && event.shiftKey) {
                 event.preventDefault();
                 var prevItem = context.prevItem;
-                // if (!prevItem) {
-                //     prevItem = context.parent;
-                // }
                 if (prevItem && prevItem != app) {
                     detach(context);
                     appendBefore(prevItem.parent, context, prevItem);
@@ -143,13 +140,16 @@ var todoItem = pakka({
             } else if (key == 40 && event.shiftKey) {
                 event.preventDefault();
                 var nextItem = context.nextItem;
-                // if(!nextItem)
                 if (nextItem) {
                     detach(context);
                     appendAfter(nextItem.parent, context, nextItem);
                     context.focus();
                     saveData();
                 }
+                return false;
+            } else if (key == 32 && event.shiftKey) {
+                event.preventDefault();
+                context.$set('data.isSelected', !context.$get('data.isSelected'));
                 return false;
             }
         };
@@ -196,9 +196,6 @@ var appendBefore = function(parent, item, before) {
         item.prevItem = null;
         item.nextItem = null;
     }
-    // if (parent.lastItem == after) {
-    //     parent.lastItem = item;
-    // }
     item.parent = parent;
     renderItems(parent, item);
 }
@@ -267,12 +264,6 @@ var renderItems = function(parent, item, isSilent) {
         }
     }
     parent.$set('todoItems', list);
-    // parent.$properties.notes = data;
-    // if (parent != app) {
-
-    // }
-    // console.log(JSON.stringify(app.$properties.data.notes));
-    // saveData();
 };
 
 var saveData = function() {},
