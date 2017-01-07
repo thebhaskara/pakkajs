@@ -2,11 +2,11 @@ var TodoApp = pakka.create('.todoApp'),
     globcount = 0,
     TodoItem = pakka({
         name: 'todo-item',
-        html: '<div>' +
+        html: '<li><div>' +
             '<input type="text" bind-property="text">' +
             '<span bind-text="text1"></span>' +
             '<span class="status" bind-text="status" click-handle="toggleStatus"></span>' +
-            '</div>',
+            '</div></li>',
         css: '.todo-item .status{ margin:0 5px; color:blue; }',
         controller: function(context) {
             var statuses = [

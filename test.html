@@ -22,8 +22,8 @@
         <div>
             <ul>
                 <li bind-repeat="myArray" var-name="item" var-index="index">
-                    <div>
-                        <div bind-repeat="item" var-name="aaa" var-key="baaa">
+                    <div bind-repeat="item" var-name="aaa" var-key="baaa">
+                        <div>
                             <span bind-text="baaa"></span>
                             <span> - </span>
                             <span bind-text="aaa"></span>
@@ -41,8 +41,8 @@
         <button click-handle="removeItem">remove item</button>
         <div bind-text="count"></div>
         <div bind-text="time"></div>
-        <ul>
-            <li bind-components="todoComponents"></li>
+        <ul bind-components-container="todoComponents">
+            <li ></li>
         </ul>
         <div bind-repeat="asd" var-name="val" var-key="key">
             <span bind-text="key"></span>
