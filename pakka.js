@@ -541,13 +541,13 @@
                     });
                     component.$set(attr, key);
                 }
-                each(component.$elements, function(element){
+                each(component.$elements, function(element) {
                     el.appendChild(element);
                 });
             })
 
-            each(_map, function(component){
-                each(component.$elements, function(element){
+            each(_map, function(component) {
+                each(component.$elements, function(element) {
                     el.removeChild(element);
                 });
             });
@@ -684,50 +684,6 @@
             _map = map;
         }
     });
-
-    // addBinder('bind-components', function(el, prop, context) {
-    //     var parentElement = el.parentElement,
-    //         nextSibling = el.nextSibling,
-    //         tempElement = document.createElement('div'),
-    //         containerElements = [];
-
-    //     tempElement.appendChild(el);
-    //     var elementString = tempElement.innerHTML;
-
-    //     return function(components) {
-    //         if (isUndefined(components) || !isArray(components)) {
-    //             return;
-    //         }
-    //         var containerElementsLength = containerElements.length,
-    //             componentsLength = components.length;
-    //         if (containerElementsLength > componentsLength) {
-    //             for (var i = componentsLength; i < containerElementsLength; i++) {
-    //                 parentElement.removeChild(containerElements[i]);
-    //             }
-    //             containerElements.splice(componentsLength);
-    //         } else if (containerElementsLength < componentsLength) {
-    //             for (var i = containerElementsLength; i < componentsLength; i++) {
-    //                 tempElement.innerHTML = elementString;
-    //                 var child = tempElement.children[0];
-    //                 // dont use appendChild
-    //                 // as appendChild fails to cover the scenario 
-    //                 // when the element is in between other elements
-    //                 parentElement.insertBefore(child, nextSibling);
-    //                 containerElements.push(child);
-    //             }
-    //         }
-
-    //         each(components, function(component, index) {
-    //             var container = containerElements[index];
-    //             if (container.children[0] != component.$elements[0]) {
-    //                 empty(container);
-    //                 each(component.$elements, function(element) {
-    //                     container.appendChild(element);
-    //                 });
-    //             }
-    //         });
-    //     }
-    // });
 
     var addClass = pakka.addClass = function(el, className) {
         // add class

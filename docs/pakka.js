@@ -502,80 +502,56 @@
         };
 
     addBinder('bind-repeat', function(el, prop, context) {
-        var parentElement = el.parentElement,
-            nextSibling = el.nextSibling,
-            tempElement = document.createElement('div'),
+        var tempElement = document.createElement('div'),
             nameAttr = el.getAttribute('var-name'),
             keyAttr = el.getAttribute('var-key'),
             indexAttr = el.getAttribute('var-index'),
-            containerElements = [],
-            map = {},
+            _map = {},
+            _valuesMap = {},
             BaseComponent = pakka({
                 html: el.innerHTML,
             });
-
         el.innerHTML = '';
-        tempElement.appendChild(el);
-        var elementString = tempElement.innerHTML;
 
         return function(input) {
-            if (isUndefined(input) || (!isArray(input) && !isObject(input))) {
+            var isArrayInput = isArray(input),
+                isObjectInput = isObject(input);
+            if (isUndefined(input) || (!isArrayInput && !isObjectInput)) {
                 return;
             }
-            var containerElementsLength = containerElements.length,
-                keys = lodash.keys(input),
-                isInputArray = isArray(input),
-                inputLength = isInputArray ? input.length : keys.length;
-            if (containerElementsLength > inputLength) {
-                for (var i = inputLength; i < containerElementsLength; i++) {
-                    parentElement.removeChild(containerElements[i]);
-                }
-                containerElements.splice(inputLength);
-            } else if (containerElementsLength < inputLength) {
-                for (var i = containerElementsLength; i < inputLength; i++) {
-                    tempElement.innerHTML = elementString;
-                    var child = tempElement.children[0];
-                    // dont use appendChild
-                    // as appendChild fails to cover the scenario 
-                    // when the element is in between other elements
-                    parentElement.insertBefore(child, nextSibling);
-                    containerElements.push(child);
-                }
-            }
 
-            var i = 0;
-            each(input, function(item, index) {
-                var container = containerElements[i],
-                    component = map[index];
+            var map = {},
+                valuesMap = {};
+            each(input, function(value, key) {
+                var component = map[value] = _map[value];
+                delete _map[value];
                 if (!component) {
-                    component = new BaseComponent();
-                    if (isInputArray) {
-                        context.$watch(prop + '[' + index + ']', function(value) {
-                            component.$set(nameAttr, value);
-                            component.$set(indexAttr, index);
-                        })
+                    component = map[value] = new BaseComponent();
+                    component.$parent = context;
+                    var watchProp, attr;
+                    if (isArrayInput) {
+                        watchProp = prop + '[' + key + ']';
+                        attr = indexAttr;
                     } else {
-                        context.$watch(prop + '.' + index, function(value) {
-                            component.$set(nameAttr, value);
-                            component.$set(keyAttr, index);
-                        })
+                        watchProp = prop + '.' + key;
+                        attr = keyAttr;
                     }
-                }
-                if (container.children[0] != component.$elements[0]) {
-                    each(component.$elements, function(element) {
-                        empty(container);
-                        container.appendChild(element);
+                    context.$watch(watchProp, function(val) {
+                        component.$set(nameAttr, val);
                     });
+                    component.$set(attr, key);
                 }
-                component.$set(nameAttr, item);
-                if (isInputArray) {
-                    component.$set(indexAttr, index);
-                } else {
-                    component.$set(keyAttr, index);
-                }
-                map[index] = component;
-                i++;
+                each(component.$elements, function(element){
+                    el.appendChild(element);
+                });
+            })
+
+            each(_map, function(component){
+                each(component.$elements, function(element){
+                    el.removeChild(element);
+                });
             });
+            _map = map;
         }
     });
 
@@ -685,48 +661,73 @@
     });
 
     addBinder('bind-components', function(el, prop, context) {
-        var parentElement = el.parentElement,
-            nextSibling = el.nextSibling,
-            tempElement = document.createElement('div'),
-            containerElements = [];
-
-        tempElement.appendChild(el);
-        var elementString = tempElement.innerHTML;
-
+        var _map = {};
+        empty(el);
         return function(components) {
             if (isUndefined(components) || !isArray(components)) {
                 return;
             }
-            var containerElementsLength = containerElements.length,
-                componentsLength = components.length;
-            if (containerElementsLength > componentsLength) {
-                for (var i = componentsLength; i < containerElementsLength; i++) {
-                    parentElement.removeChild(containerElements[i]);
-                }
-                containerElements.splice(componentsLength);
-            } else if (containerElementsLength < componentsLength) {
-                for (var i = containerElementsLength; i < componentsLength; i++) {
-                    tempElement.innerHTML = elementString;
-                    var child = tempElement.children[0];
-                    // dont use appendChild
-                    // as appendChild fails to cover the scenario 
-                    // when the element is in between other elements
-                    parentElement.insertBefore(child, nextSibling);
-                    containerElements.push(child);
-                }
-            }
-
-            each(components, function(component, index) {
-                var container = containerElements[index];
-                if (container.children[0] != component.$elements[0]) {
-                    empty(container);
-                    each(component.$elements, function(element) {
-                        container.appendChild(element);
-                    });
-                }
+            var map = {};
+            each(components, function(component) {
+                var id = component.$id;
+                delete _map[id];
+                map[id] = component;
+                each(component.$elements, function(element) {
+                    el.appendChild(element);
+                });
             });
+            each(_map, function(component) {
+                each(component.$elements, function(element) {
+                    el.removeChild(element);
+                });
+            });
+            _map = map;
         }
     });
+
+    // addBinder('bind-components', function(el, prop, context) {
+    //     var parentElement = el.parentElement,
+    //         nextSibling = el.nextSibling,
+    //         tempElement = document.createElement('div'),
+    //         containerElements = [];
+
+    //     tempElement.appendChild(el);
+    //     var elementString = tempElement.innerHTML;
+
+    //     return function(components) {
+    //         if (isUndefined(components) || !isArray(components)) {
+    //             return;
+    //         }
+    //         var containerElementsLength = containerElements.length,
+    //             componentsLength = components.length;
+    //         if (containerElementsLength > componentsLength) {
+    //             for (var i = componentsLength; i < containerElementsLength; i++) {
+    //                 parentElement.removeChild(containerElements[i]);
+    //             }
+    //             containerElements.splice(componentsLength);
+    //         } else if (containerElementsLength < componentsLength) {
+    //             for (var i = containerElementsLength; i < componentsLength; i++) {
+    //                 tempElement.innerHTML = elementString;
+    //                 var child = tempElement.children[0];
+    //                 // dont use appendChild
+    //                 // as appendChild fails to cover the scenario 
+    //                 // when the element is in between other elements
+    //                 parentElement.insertBefore(child, nextSibling);
+    //                 containerElements.push(child);
+    //             }
+    //         }
+
+    //         each(components, function(component, index) {
+    //             var container = containerElements[index];
+    //             if (container.children[0] != component.$elements[0]) {
+    //                 empty(container);
+    //                 each(component.$elements, function(element) {
+    //                     container.appendChild(element);
+    //                 });
+    //             }
+    //         });
+    //     }
+    // });
 
     var addClass = pakka.addClass = function(el, className) {
         // add class
