@@ -46,6 +46,7 @@
     "gulp-rename": "^1.2.2",
     "gulp-sync": "^0.1.4",
     "gulp-uglify": "^2.0.0",
-    "jasmine": "^2.5.2"
+    "jasmine": "^2.5.2",
+    "mocha": "^3.2.0"
   }
 }
