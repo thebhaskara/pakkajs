@@ -37,6 +37,7 @@
   },
   "homepage": "https://github.com/thebhaskara/pakkajs#readme",
   "dependencies": {
+    "expect.js": "^0.3.1",
     "lodash": "^4.17.2"
   },
   "devDependencies": {
