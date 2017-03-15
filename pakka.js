@@ -232,7 +232,9 @@
             return result;
         },
         create = pakka.create = function(options) {
-            if (isString(options)) {
+            if (!options) {
+                options = {};
+            } else if (isString(options)) {
                 options = {
                     elements: select(options)
                 };
@@ -739,11 +741,27 @@
                 }
             })
         }
-    })
+    });
 
     pakka.addBinder('bind-element', function(el, prop, context) {
         context.$set(prop, el);
         return function() {}
+    });
+
+    pakka.addBinder('bind-attributes', function(el, prop, context) {
+        return function(attibutes) {
+            if (isObject(attributes)) {
+                each(attributes, function(value, key) {
+                    el.setAttribute(key, value);
+                });
+            }
+        };
+    });
+
+    pakka.addBinder('bind-href', function(el, prop, context) {
+        return function(value) {
+            el.href = value;
+        }
     });
 
     return pakka;
