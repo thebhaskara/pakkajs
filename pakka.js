@@ -220,7 +220,7 @@
                 var component = new options.controller(context);
             }
         }
-    pakka.version = "1.1.7";
+    pakka.version = "1.1.8";
     var select = pakka.select = function(elements) {
             if (isString(elements)) {
                 elements = document.querySelectorAll(elements);
