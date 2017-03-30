@@ -204,13 +204,21 @@
                     // linkerFunction = pakka.linkerFunction = 
                     // function(element, context, namespace, callback, name) {
                     // }
-                    linkerFunction(null, context, 'watch', function(el, prop, ctx) {
+                    return linkerFunction(null, context, 'watch', function(el, prop, ctx) {
                         var oldValue = ctx.$get(prop);
                         return function(newValue) {
                             callback && callback(newValue, oldValue);
                             oldValue = newValue;
                         }
                     }, propertyName);
+                }
+
+                // watcher
+                context.$unwatch = function(handle) {
+                    // linkerFunction = pakka.linkerFunction = 
+                    // function(element, context, namespace, callback, name) {
+                    // }
+                    unlinkerFunction(context, handle);
                 }
 
                 // initializing the controller
@@ -416,11 +424,25 @@
         linkerFunction = pakka.linkerFunction = function(element, context, namespace, callback, name) {
             var prop = element ? element.getAttribute(name) : name;
             var bindingsList = context.$propertyBindings[prop] || [];
-            bindingsList.push({
+            var binding = {
                 namespace: namespace,
                 callback: callback(element, prop, context)
-            });
+            };
+            bindingsList.push(binding);
             context.$propertyBindings[prop] = bindingsList;
+            return {
+                prop: prop,
+                binding: binding
+            };
+        },
+
+        unlinkerFunction = pakka.unlinkerFunction = function(context, handler) {
+            var bindingsList = context.$propertyBindings[handler.prop];
+            if (bindingsList) {
+                context.$propertyBindings[handler.prop] = lodash.filter(bindingsList, function(binding) {
+                    return binding != handler.binding;
+                });
+            }
         },
 
         // attaches events

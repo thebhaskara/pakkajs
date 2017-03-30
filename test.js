@@ -110,8 +110,14 @@ var asd = {
         b: 20
     }
 }
+var handle = TodoApp.$watch('asd', function(asd){
+    console.log(JSON.stringify(asd));
+})
 TodoApp.$set('asd', asd);
 TodoApp.$set('asd.a.c', 30);
+TodoApp.$unwatch(handle)
+TodoApp.$set('asd.a.d', 30);
+
 
 TodoApp.$set('myArray', [{ name: 'Bhaskara' }, { name: 'Divakara' }]);
 TodoApp.$set('myArray[0].name', 'status');
