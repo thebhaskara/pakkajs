@@ -189,14 +189,33 @@
                 // destroys the object
                 context.$destroy = function() {
 
+                    lodash.isFunction(context.beforeDestroy) && context.beforeDestroy();
+
                     detachEvents(context);
+
+                    context.$stopListening();
+
                     removePropertyBindings(context);
+
+                    each(context.$propertyBindings, function(bindings, prop) {
+                        context.$set(prop, undefined);
+                    });
+
+                    each(context.$elements, function(el) {
+                        el.remove();
+                    })
+
+                    var afterDestroy = lodash.isFunction(context.afterDestroy) && context.afterDestroy;
 
                     // deleting remaining stuff
                     each(context, function(val, key) {
                         delete context[key];
-                    })
+                    });
                     delete context;
+
+                    delete component;
+
+                    afterDestroy && afterDestroy();
                 }
 
                 // watcher
@@ -221,6 +240,37 @@
                     unlinkerFunction(context, handle);
                 }
 
+                var listenHandlers = [];
+                context.$listen = function(component, prop, callback) {
+                    if (lodash.isFunction(component.$watch)) {
+                        var handle = {
+                            component: component,
+                            handle: component.$watch(prop, callback)
+                        }
+                        listenHandlers.push(handle);
+                        return handle;
+                    }
+                }
+                context.$stopListening = function(handle) {
+                    if (handle) {
+                        // incase of component already destroyed
+                        if (handle.component && lodash.isFunction(handle.component.$unwatch)) {
+                            handle.component.$unwatch(handle.handle);
+                        }
+                        listenHandlers = lodash.filter(listenHandlers, function(handler) {
+                            return handle != handler;
+                        });
+                    } else {
+                        each(listenHandlers, function(handle) {
+                            // incase of component already destroyed
+                            if (handle.component && lodash.isFunction(handle.component.$unwatch)) {
+                                handle.component.$unwatch(handle.handle);
+                            }
+                        });
+                        listenHandlers = [];
+                    }
+                }
+
                 // initializing the controller
                 // you can see that we are passing the context
                 // so all the above functionalities are available 
@@ -228,7 +278,7 @@
                 var component = new options.controller(context);
             }
         }
-    pakka.version = "1.1.8";
+    pakka.version = "1.2.0";
     var select = pakka.select = function(elements) {
             if (isString(elements)) {
                 elements = document.querySelectorAll(elements);
@@ -269,6 +319,7 @@
 
         // from underscorejs
         isUndefined = pakka.isUndefined = lodash.isUndefined,
+        isNil = pakka.isNil = lodash.isNil,
 
         // from underscorejs
         isObject = pakka.isObject = lodash.isObject,
@@ -540,7 +591,7 @@
         return function(input) {
             var isArrayInput = isArray(input),
                 isObjectInput = isObject(input);
-            if (isUndefined(input) || (!isArrayInput && !isObjectInput)) {
+            if (isNil(input) || (!isArrayInput && !isObjectInput)) {
                 return;
             }
 
@@ -660,7 +711,7 @@
             if (isHandlerCalled) {
                 isHandlerCalled = false;
             } else {
-                if (!isUndefined(value)) {
+                if (!isNil(value)) {
                     setValue(el, value);
                 }
             }
@@ -675,8 +726,8 @@
 
     addBinder('bind-component', function(el, prop, context) {
         return function(value) {
-            if (!isUndefined(value)) {
-                empty(el);
+            empty(el);
+            if (!isNil(value)) {
                 each(value.$elements, function(element) {
                     el.appendChild(element);
                 })
@@ -688,8 +739,9 @@
         var _map = {};
         empty(el);
         return function(components) {
-            if (isUndefined(components) || !isArray(components)) {
-                return;
+            if (isNil(components) || !isArray(components)) {
+                components = [];
+                // return;
             }
             var map = {};
             each(components, function(component) {
