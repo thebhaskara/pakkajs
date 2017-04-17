@@ -391,6 +391,29 @@ Binds all the pakka component instances given in the `ListOfPakkaComponents`.
 e.g. `<div bind-components="myComponents" ></div>`
 use `context.$set('myComponents', ListOfPakkaComponents)` in your controller to bind this component.
 
+#### `bind-class`
+
+Adds or removes classes given in the given property.
+User can provide 3 types of inputs. Namely String, Array or Object.
+
+When user provides string, it adds the classes provided in the string and removes any class that was added before(which is not present now).
+
+When user provides Array, it does the sane thing as string but the input needs classes seperated by strings(not spaces in strings).
+
+When user provides Object, the key will be treated as class name and the value will be used to add or remove the class(you will have to provide boolean true as the value to add the class otherwise it will be treated as false and be removed).
+
+e.g. `<div bind-class="myClasses" ></div>`
+use `context.$set('myClasses', 'myClass')` or `context.$set('myClasses', ['myClass', 'myAnotherClass'])` or `context.$set('myClasses', {'myClass': true, 'myAnotherClass': false})` in your controller to bind this component.
+
+#### `bind-element`
+
+Gives the element handle. 
+
+> Note: This is a readonly binder. User can actually use the element to do some manipulations but cannot use $set to set another element.
+
+e.g. `<div bind-element="myElement" ></div>`
+use `context.$get('myElement')` in your controller to bind this component.
+
 
 ### Events binding
 
