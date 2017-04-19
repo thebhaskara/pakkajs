@@ -4,13 +4,24 @@ var gulpsync = require('gulp-sync')(gulp);
 var uglify = require('gulp-uglify');
 var rename = require('gulp-rename');
 var gzip = require('gulp-gzip');
+var replace = require('gulp-string-replace');
 
 gulp.task('default', gulpsync.sync([
+    'version.update',
     'clean',
     'uglify',
     'zip',
     'copy.to.docs',
 ]));
+
+var version = '"1.2.1"';
+var pattern = /(\"|\')(\d+\.\d+\.\d+)(\"|\')/;
+
+gulp.task('version.update', function() {
+    return gulp.src(["./pakka.js", "./bower.json", "./package.json"])
+        .pipe(replace(pattern, version))
+        .pipe(gulp.dest('./'));
+});
 
 gulp.task('clean', function() {
     return del.sync(['pakka.min.js', 'pakka.min.js.gz']);

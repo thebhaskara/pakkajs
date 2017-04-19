@@ -80,6 +80,27 @@
                     apply(context, prop, value, true, true);
                 };
 
+                context.$getSet = function(prop, callback) {
+                    var val = context.$get(prop);
+                    context.$set(prop, callback(val));
+                    return context;
+                };
+
+                context.$clear = function(prop) {
+                    context.$set(prop, undefined);
+                    return context;
+                };
+
+                context.$push = function(prop, val) {
+                    context.$getSet(prop, function(list) {
+                        if (lodash.isArray(list)) {
+                            list.push(val);
+                        }
+                        return list;
+                    });
+                    return context;
+                };
+
                 // initializing components name and id into its context
                 context.$name = componentName;
                 context.$options = options;
@@ -189,14 +210,37 @@
                 // destroys the object
                 context.$destroy = function() {
 
+                    lodash.isFunction(context.beforeDestroy) && context.beforeDestroy();
+
+                    each(childComponents, function(comp) {
+                        comp && comp.$destroy && comp.$destroy();
+                    })
+
                     detachEvents(context);
+
+                    context.$stopListening();
+
                     removePropertyBindings(context);
+
+                    each(context.$propertyBindings, function(bindings, prop) {
+                        context.$set(prop, undefined);
+                    });
+
+                    each(context.$elements, function(el) {
+                        el.remove();
+                    })
+
+                    var afterDestroy = lodash.isFunction(context.afterDestroy) && context.afterDestroy;
 
                     // deleting remaining stuff
                     each(context, function(val, key) {
                         delete context[key];
-                    })
+                    });
                     delete context;
+
+                    delete component;
+
+                    afterDestroy && afterDestroy();
                 }
 
                 // watcher
@@ -204,13 +248,82 @@
                     // linkerFunction = pakka.linkerFunction = 
                     // function(element, context, namespace, callback, name) {
                     // }
-                    linkerFunction(null, context, 'watch', function(el, prop, ctx) {
+                    return linkerFunction(null, context, 'watch', function(el, prop, ctx) {
                         var oldValue = ctx.$get(prop);
                         return function(newValue) {
                             callback && callback(newValue, oldValue);
                             oldValue = newValue;
                         }
                     }, propertyName);
+                }
+
+                // watcher
+                context.$unwatch = function(handle) {
+                    // linkerFunction = pakka.linkerFunction = 
+                    // function(element, context, namespace, callback, name) {
+                    // }
+                    unlinkerFunction(context, handle);
+                };
+
+                context.$getWatch = function(prop, callback) {
+                    callback(context.$get(prop));
+                    return context.$watch(prop, callback);
+                }
+
+                var listenHandlers = [];
+                context.$listen = function(component, prop, callback) {
+                    if (lodash.isFunction(component.$watch)) {
+                        var handle = {
+                            component: component,
+                            handle: component.$watch(prop, callback)
+                        }
+                        listenHandlers.push(handle);
+                        return handle;
+                    }
+                };
+                context.$stopListening = function(handle) {
+                    if (handle) {
+                        // incase of component already destroyed
+                        if (handle.component && lodash.isFunction(handle.component.$unwatch)) {
+                            handle.component.$unwatch(handle.handle);
+                        }
+                        listenHandlers = lodash.filter(listenHandlers, function(handler) {
+                            return handle != handler;
+                        });
+                    } else {
+                        each(listenHandlers, function(handle) {
+                            // incase of component already destroyed
+                            if (handle.component && lodash.isFunction(handle.component.$unwatch)) {
+                                handle.component.$unwatch(handle.handle);
+                            }
+                        });
+                        listenHandlers = [];
+                    }
+                };
+
+                var childComponents = [];
+                context.$createChild = function(factory, options) {
+                    var instance = new factory(options);
+                    context.$addChild(instance);
+                    return instance;
+                };
+                context.$addChild = function(component) {
+                    childComponents.push(component);
+                    return context;
+                };
+                context.$removeChild = function(component) {
+                    childComponents = lodash.filter(childComponents, function(comp) {
+                        return comp != component;
+                    });
+                    return context;
+                };
+
+                context.$createCallback = function(callback) {
+                    return function() {
+                        if (context && context.$set) {
+                            callback.apply(callback, arguments);
+                        }
+                    }
                 }
 
                 // initializing the controller
@@ -220,7 +333,7 @@
                 var component = new options.controller(context);
             }
         }
-    pakka.version = "1.1.6";
+    pakka.version = "1.2.1";
     var select = pakka.select = function(elements) {
             if (isString(elements)) {
                 elements = document.querySelectorAll(elements);
@@ -232,7 +345,9 @@
             return result;
         },
         create = pakka.create = function(options) {
-            if (isString(options)) {
+            if (!options) {
+                options = {};
+            } else if (isString(options)) {
                 options = {
                     elements: select(options)
                 };
@@ -259,6 +374,7 @@
 
         // from underscorejs
         isUndefined = pakka.isUndefined = lodash.isUndefined,
+        isNil = pakka.isNil = lodash.isNil,
 
         // from underscorejs
         isObject = pakka.isObject = lodash.isObject,
@@ -414,11 +530,25 @@
         linkerFunction = pakka.linkerFunction = function(element, context, namespace, callback, name) {
             var prop = element ? element.getAttribute(name) : name;
             var bindingsList = context.$propertyBindings[prop] || [];
-            bindingsList.push({
+            var binding = {
                 namespace: namespace,
                 callback: callback(element, prop, context)
-            });
+            };
+            bindingsList.push(binding);
             context.$propertyBindings[prop] = bindingsList;
+            return {
+                prop: prop,
+                binding: binding
+            };
+        },
+
+        unlinkerFunction = pakka.unlinkerFunction = function(context, handler) {
+            var bindingsList = context.$propertyBindings[handler.prop];
+            if (bindingsList) {
+                context.$propertyBindings[handler.prop] = lodash.filter(bindingsList, function(binding) {
+                    return binding != handler.binding;
+                });
+            }
         },
 
         // attaches events
@@ -516,7 +646,7 @@
         return function(input) {
             var isArrayInput = isArray(input),
                 isObjectInput = isObject(input);
-            if (isUndefined(input) || (!isArrayInput && !isObjectInput)) {
+            if (isNil(input) || (!isArrayInput && !isObjectInput)) {
                 return;
             }
 
@@ -541,13 +671,13 @@
                     });
                     component.$set(attr, key);
                 }
-                each(component.$elements, function(element){
+                each(component.$elements, function(element) {
                     el.appendChild(element);
                 });
             })
 
-            each(_map, function(component){
-                each(component.$elements, function(element){
+            each(_map, function(component) {
+                each(component.$elements, function(element) {
                     el.removeChild(element);
                 });
             });
@@ -636,7 +766,7 @@
             if (isHandlerCalled) {
                 isHandlerCalled = false;
             } else {
-                if (!isUndefined(value)) {
+                if (!isNil(value)) {
                     setValue(el, value);
                 }
             }
@@ -651,8 +781,8 @@
 
     addBinder('bind-component', function(el, prop, context) {
         return function(value) {
-            if (!isUndefined(value)) {
-                empty(el);
+            empty(el);
+            if (!isNil(value)) {
                 each(value.$elements, function(element) {
                     el.appendChild(element);
                 })
@@ -664,8 +794,9 @@
         var _map = {};
         empty(el);
         return function(components) {
-            if (isUndefined(components) || !isArray(components)) {
-                return;
+            if (isNil(components) || !isArray(components)) {
+                components = [];
+                // return;
             }
             var map = {};
             each(components, function(component) {
@@ -684,50 +815,6 @@
             _map = map;
         }
     });
-
-    // addBinder('bind-components', function(el, prop, context) {
-    //     var parentElement = el.parentElement,
-    //         nextSibling = el.nextSibling,
-    //         tempElement = document.createElement('div'),
-    //         containerElements = [];
-
-    //     tempElement.appendChild(el);
-    //     var elementString = tempElement.innerHTML;
-
-    //     return function(components) {
-    //         if (isUndefined(components) || !isArray(components)) {
-    //             return;
-    //         }
-    //         var containerElementsLength = containerElements.length,
-    //             componentsLength = components.length;
-    //         if (containerElementsLength > componentsLength) {
-    //             for (var i = componentsLength; i < containerElementsLength; i++) {
-    //                 parentElement.removeChild(containerElements[i]);
-    //             }
-    //             containerElements.splice(componentsLength);
-    //         } else if (containerElementsLength < componentsLength) {
-    //             for (var i = containerElementsLength; i < componentsLength; i++) {
-    //                 tempElement.innerHTML = elementString;
-    //                 var child = tempElement.children[0];
-    //                 // dont use appendChild
-    //                 // as appendChild fails to cover the scenario 
-    //                 // when the element is in between other elements
-    //                 parentElement.insertBefore(child, nextSibling);
-    //                 containerElements.push(child);
-    //             }
-    //         }
-
-    //         each(components, function(component, index) {
-    //             var container = containerElements[index];
-    //             if (container.children[0] != component.$elements[0]) {
-    //                 empty(container);
-    //                 each(component.$elements, function(element) {
-    //                     container.appendChild(element);
-    //                 });
-    //             }
-    //         });
-    //     }
-    // });
 
     var addClass = pakka.addClass = function(el, className) {
         // add class
@@ -783,11 +870,27 @@
                 }
             })
         }
-    })
+    });
 
     pakka.addBinder('bind-element', function(el, prop, context) {
         context.$set(prop, el);
         return function() {}
+    });
+
+    pakka.addBinder('bind-attributes', function(el, prop, context) {
+        return function(attibutes) {
+            if (isObject(attributes)) {
+                each(attributes, function(value, key) {
+                    el.setAttribute(key, value);
+                });
+            }
+        };
+    });
+
+    pakka.addBinder('bind-href', function(el, prop, context) {
+        return function(value) {
+            el.href = value;
+        }
     });
 
     return pakka;

@@ -1,6 +1,6 @@
 {
   "name": "pakkajs",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "The idea is to provide few pakka simple UI tools.",
   "main": "pakka.js",
   "directories": {
@@ -45,6 +45,7 @@
     "gulp": "^3.9.1",
     "gulp-gzip": "^1.4.0",
     "gulp-rename": "^1.2.2",
+    "gulp-string-replace": "^0.4.0",
     "gulp-sync": "^0.1.4",
     "gulp-uglify": "^2.0.0",
     "jasmine": "^2.5.2",

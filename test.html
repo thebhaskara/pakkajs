@@ -41,8 +41,8 @@
         <button click-handle="removeItem">remove item</button>
         <div bind-text="count"></div>
         <div bind-text="time"></div>
-        <ul bind-components-container="todoComponents">
-            <li ></li>
+        <ul>
+            <li bind-components="todoComponents"></li>
         </ul>
         <div bind-repeat="asd" var-name="val" var-key="key">
             <span bind-text="key"></span>
@@ -50,9 +50,15 @@
             <span bind-text="val"></span>
         </div>
     </section>
+    <section id="otherApp">
+        <ul>
+            <li bind-components="todoComponents"></li>
+        </ul>
+    </section>
     <script src="node_modules/lodash/lodash.js"></script>
     <script src="pakka.js"></script>
     <script src="test.js"></script>
+    <!-- <script src="test1.js"></script> -->
 </body>
 
 </html>

@@ -80,6 +80,27 @@
                     apply(context, prop, value, true, true);
                 };
 
+                context.$getSet = function(prop, callback) {
+                    var val = context.$get(prop);
+                    context.$set(prop, callback(val));
+                    return context;
+                };
+
+                context.$clear = function(prop) {
+                    context.$set(prop, undefined);
+                    return context;
+                };
+
+                context.$push = function(prop, val) {
+                    context.$getSet(prop, function(list) {
+                        if (lodash.isArray(list)) {
+                            list.push(val);
+                        }
+                        return list;
+                    });
+                    return context;
+                };
+
                 // initializing components name and id into its context
                 context.$name = componentName;
                 context.$options = options;
@@ -191,6 +212,10 @@
 
                     lodash.isFunction(context.beforeDestroy) && context.beforeDestroy();
 
+                    each(childComponents, function(comp) {
+                        comp && comp.$destroy && comp.$destroy();
+                    })
+
                     detachEvents(context);
 
                     context.$stopListening();
@@ -238,6 +263,11 @@
                     // function(element, context, namespace, callback, name) {
                     // }
                     unlinkerFunction(context, handle);
+                };
+
+                context.$getWatch = function(prop, callback) {
+                    callback(context.$get(prop));
+                    return context.$watch(prop, callback);
                 }
 
                 var listenHandlers = [];
@@ -250,7 +280,7 @@
                         listenHandlers.push(handle);
                         return handle;
                     }
-                }
+                };
                 context.$stopListening = function(handle) {
                     if (handle) {
                         // incase of component already destroyed
@@ -269,6 +299,31 @@
                         });
                         listenHandlers = [];
                     }
+                };
+
+                var childComponents = [];
+                context.$createChild = function(factory, options) {
+                    var instance = new factory(options);
+                    context.$addChild(instance);
+                    return instance;
+                };
+                context.$addChild = function(component) {
+                    childComponents.push(component);
+                    return context;
+                };
+                context.$removeChild = function(component) {
+                    childComponents = lodash.filter(childComponents, function(comp) {
+                        return comp != component;
+                    });
+                    return context;
+                };
+
+                context.$createCallback = function(callback) {
+                    return function() {
+                        if (context && context.$set) {
+                            callback.apply(callback, arguments);
+                        }
+                    }
                 }
 
                 // initializing the controller
@@ -278,7 +333,7 @@
                 var component = new options.controller(context);
             }
         }
-    pakka.version = "1.2.0";
+    pakka.version = "1.2.1";
     var select = pakka.select = function(elements) {
             if (isString(elements)) {
                 elements = document.querySelectorAll(elements);

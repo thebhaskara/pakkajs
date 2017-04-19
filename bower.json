@@ -1,6 +1,6 @@
 {
   "name": "pakkajs",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "The idea is to provide few pakka simple UI tools.",
   "main": "src/pakka.js",
   "authors": [
