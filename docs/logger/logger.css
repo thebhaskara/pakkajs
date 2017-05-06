@@ -1,0 +1,74 @@
+body {
+	width: 100%;
+}
+
+.page {
+	max-width: 980px;
+	margin: auto;
+}
+
+body, input {
+	font-size: 14px;
+	font-family: sans-serif;
+	line-height: 1.14;
+}
+.log-section{
+	padding: 10px;
+}
+.log-section input{
+	/*min-width: 100%;*/
+	padding: 5px;
+}
+
+.log-section.paused{
+	background-color: #fcf8e3;
+}
+
+.log-section.started{
+	background-color: #dff0d8;
+}
+
+.log-section button.start,
+.log-section button.pause,
+.log-section button.stop{
+	display: none;
+}
+
+.log-section.open button.start{
+	display: block;
+}
+
+.log-section.started button.stop{
+	display: block;
+}
+
+.log-section.paused button.start{
+	display: block;
+}
+
+.log-section.stopped button.start{
+	display: block;
+}
+
+.flyout {
+	position: relative;
+}
+
+.flyout .flyout-content {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	display: none;
+	padding: 5px;
+	z-index:10;
+	border:1px solid #eee;
+	background-color: #ffffff;
+}
+
+.flyout:hover .flyout-content {
+	display: block;
+}
+
+.duration-section {
+	white-space: nowrap;
+}
