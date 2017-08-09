@@ -14,7 +14,7 @@ gulp.task('default', gulpsync.sync([
     'copy.to.docs',
 ]));
 
-var version = '"1.2.1"';
+var version = '"1.2.2"';
 var pattern = /(\"|\')(\d+\.\d+\.\d+)(\"|\')/;
 
 gulp.task('version.update', function() {

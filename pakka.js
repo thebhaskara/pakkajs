@@ -120,81 +120,11 @@
                         context.$componentId, instanceStyleElement);
                 }
 
-
-                // this function is available on the instance 
-                // for setting elements dynamically
-                context.$setElements = function(elements) {
-
-                    // in case these things are already set
-                    detachEvents(context);
-                    removePropertyBindings(context);
-
-                    // this keeps the map of properties along with their
-                    // list of element and bindings respectively.
-                    // this acts as cache for fast execution of binings
-                    context.$propertyBindings = {};
-
-                    // this keeps the list of listeners that are attached
-                    // this acts as a cache and also will be used to detach 
-                    // listeners while destroying the object
-                    context.$listeners = [];
-
-                    // elements noticed are available on the context
-                    context.$elements = elements;
-
-                    // following code is responsible to glue stuff up
-                    each(elements, function(element) {
-
-                        // adding this components personalized class
-                        addClass(element, componentName);
-                        addClass(element, contextId);
-
-                        // generates property bindings
-                        linkBinders(element, context, contextId);
-
-                        // attaching known events
-                        attachEvents(element, context, contextId);
-                    });
-                }
-
                 // personal function to attach an event
                 context.$attachEvent = function(event, element,
                     handler, namespace) {
                     attachEvent(event, element,
                         handler, context, namespace);
-                }
-
-                // this function is available on the instance 
-                // for setting html dynamically
-                // but it is your responsibility to 
-                // append these elements to DOM
-                context.$setHtml = function(html) {
-                    var div = document.createElement('div');
-                    div.innerHTML = options.html || '<div></div>';
-
-                    // bug-fix
-                    // the HTMLCollection returned was acting weird 
-                    // incase of bind-components sorting.
-                    context.$setElements(select(div.children));
-                }
-
-                if (!isUndefined(options.elements)) {
-
-                    // you can provide elements using document.querySelectorAll(selector)
-                    // in order to bind with existing DOM
-                    // don't worry document.querySelectorAll works for IE8 too.
-                    // in cases where elements is not set from options 
-                    // following code takes care of it
-                    context.$setElements(options.elements);
-
-                } else {
-
-                    // you can provide html string in the options
-                    // and the following makes the DOM elements for you
-                    // Note that this will create elements only.
-                    // you are responsible to attach it where you need.
-                    context.$setHtml(options.html);
-
                 }
 
                 // detaches all the attached DOM events
@@ -326,6 +256,76 @@
                     }
                 }
 
+
+                // this function is available on the instance 
+                // for setting elements dynamically
+                context.$setElements = function(elements) {
+
+                    // in case these things are already set
+                    detachEvents(context);
+                    removePropertyBindings(context);
+
+                    // this keeps the map of properties along with their
+                    // list of element and bindings respectively.
+                    // this acts as cache for fast execution of binings
+                    context.$propertyBindings = {};
+
+                    // this keeps the list of listeners that are attached
+                    // this acts as a cache and also will be used to detach 
+                    // listeners while destroying the object
+                    context.$listeners = [];
+
+                    // elements noticed are available on the context
+                    context.$elements = elements;
+
+                    // following code is responsible to glue stuff up
+                    each(elements, function(element) {
+
+                        // adding this components personalized class
+                        addClass(element, componentName);
+                        addClass(element, contextId);
+
+                        // generates property bindings
+                        linkBinders(element, context, contextId);
+
+                        // attaching known events
+                        attachEvents(element, context, contextId);
+                    });
+                }
+
+                // this function is available on the instance 
+                // for setting html dynamically
+                // but it is your responsibility to 
+                // append these elements to DOM
+                context.$setHtml = function(html) {
+                    var div = document.createElement('div');
+                    div.innerHTML = options.html || '<div></div>';
+
+                    // bug-fix
+                    // the HTMLCollection returned was acting weird 
+                    // incase of bind-components sorting.
+                    context.$setElements(select(div.children));
+                }
+
+                if (!isUndefined(options.elements)) {
+
+                    // you can provide elements using document.querySelectorAll(selector)
+                    // in order to bind with existing DOM
+                    // don't worry document.querySelectorAll works for IE8 too.
+                    // in cases where elements is not set from options 
+                    // following code takes care of it
+                    context.$setElements(options.elements);
+
+                } else {
+
+                    // you can provide html string in the options
+                    // and the following makes the DOM elements for you
+                    // Note that this will create elements only.
+                    // you are responsible to attach it where you need.
+                    context.$setHtml(options.html);
+
+                }
+
                 // initializing the controller
                 // you can see that we are passing the context
                 // so all the above functionalities are available 
@@ -333,7 +333,7 @@
                 var component = new options.controller(context);
             }
         }
-    pakka.version = "1.2.1";
+    pakka.version = "1.2.2";
     var select = pakka.select = function(elements) {
             if (isString(elements)) {
                 elements = document.querySelectorAll(elements);
