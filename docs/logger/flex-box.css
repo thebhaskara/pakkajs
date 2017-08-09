@@ -1,0 +1,45 @@
+
+/* flex box css utility */
+.flex-row,
+.flex-column {
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+}
+
+/* flex-row treats the element to be a row */
+.flex-row {
+    flex-direction: row;
+}
+
+/* flex-column treats the element to be a column */
+.flex-column {
+    flex-direction: column;
+}
+
+/* shrink to fit */
+.flex-row > *:not(.flex-grow):not(.grow),
+.flex-column > *:not(.flex-grow):not(.grow),
+.flex-row > .flex-shrink,
+.flex-row > .shrink,
+.flex-column > .flex-shrink,
+.flex-column > .shrink {
+    flex-shrink: 1;
+}
+
+/* grow to occupy available space */
+.flex-row > .flex-grow,
+.flex-row > .grow,
+.flex-column > .flex-grow,
+.flex-column > .grow {
+    flex-grow: 1;
+}
+
+.flex-row > .flex-wrap,
+.flex-row > .wrap,
+.flex-column > .flex-wrap,
+.flex-column > .wrap {
+    flex-wrap: wrap;
+}

@@ -1,0 +1,82 @@
+button {
+    display: inline-block;
+    padding: 6px 12px;
+    margin-bottom: 0;
+    font-size: 14px;
+    font-weight: normal;
+    line-height: 1.42857143;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    -ms-touch-action: manipulation;
+    touch-action: manipulation;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    position: relative;
+    border: none;
+}
+
+button.icon {
+    padding: 3px;
+    line-height: 1;
+}
+
+button:focus,
+button:active:focus,
+button.active:focus,
+button.focus,
+button:active.focus,
+button.active.focus {
+    outline: 5px auto -webkit-focus-ring-color;
+    outline-offset: -2px;
+}
+
+button:hover,
+button:focus,
+button.focus {
+    text-decoration: none;
+}
+
+button:before {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    content: ' ';
+    top: 0;
+    left: 0;
+}
+
+button:hover:before {
+    background-color: rgba(0, 0, 0, 0.125);
+}
+
+button.inverted:hover:before {
+    background-color: rgba(255, 255, 255, 0.125);
+}
+
+button:active,
+button.active {
+    background-image: none;
+    outline: 0;
+    -webkit-box-shadow: inset 0 3px 5px rgba(0, 0, 0, .125);
+    box-shadow: inset 0 3px 5px rgba(0, 0, 0, .125);
+}
+
+button.inverted:active,
+button.inverted.active {
+    -webkit-box-shadow: inset 0 3px 5px rgba(255, 255, 255, .125);
+    box-shadow: inset 0 3px 5px rgba(255, 255, 255, .125);
+}
+
+button.disabled,
+button[disabled],
+fieldset[disabled] button {
+    cursor: not-allowed;
+    filter: alpha(opacity=65);
+    -webkit-box-shadow: none;
+    box-shadow: none;
+    opacity: .65;
+}

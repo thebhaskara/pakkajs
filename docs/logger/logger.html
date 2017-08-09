@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Time Logger</title>
+  <link rel="stylesheet" type="text/css" href="button.css">
+  <link rel="stylesheet" type="text/css" href="flex-box.css">
+  <link rel="stylesheet" type="text/css" href="logger.css">
+</head>
+
+<body>
+  <section class="page">
+    <h1>Time Logger</h1>
+    <button click-handle="addLog">Add log</button>
+    <section bind-components="logs"></section>
+  </section>
+  <script type="text/html" bind-element="logTemplate">
+    <div bind-class="states">
+      <div class="flex-row">
+        <button class="start" click-handle="startTimer">Start</button>
+        <button class="stop" click-handle="stopTimer">Stop</button>
+        <input class="grow" type="text" bind-property="data.text" keypress-handle="checkEnter" bind-element="textElement">
+        <button class="delete" click-handle="deleteItem">delete</button>
+      </div>
+      <div class="flex-row">
+        <div class="flyout">
+          <span bind-text="durationText"></span>
+          <div class="flyout-content" bind-components="durationComps"></div>
+        </div>
+        <span class="grow"></span>
+      </div>
+    </div>
+  </script>
+  <script type="text/html" bind-element="durationTemplate">
+    <div>
+      <span bind-text="startText"></span>
+      <span> - </span>
+      <span bind-text="endText"></span>
+      <span> -&gt; </span>
+      <span bind-text="durationText"></span>
+    </div>
+  </script>
+  <script src="../lodash.js"></script>
+  <script src="../pakka.js"></script>
+  <script src="date.js"></script>
+  <script src="logger.js"></script>
+</body>
+
+</html>
