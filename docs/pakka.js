@@ -878,7 +878,7 @@
     });
 
     pakka.addBinder('bind-attributes', function(el, prop, context) {
-        return function(attibutes) {
+        return function(attributes) {
             if (isObject(attributes)) {
                 each(attributes, function(value, key) {
                     el.setAttribute(key, value);

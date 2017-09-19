@@ -333,7 +333,7 @@
                 var component = new options.controller(context);
             }
         }
-    pakka.version = "1.2.2";
+    pakka.version = "1.2.3";
     var select = pakka.select = function(elements) {
             if (isString(elements)) {
                 elements = document.querySelectorAll(elements);
@@ -878,7 +878,7 @@
     });
 
     pakka.addBinder('bind-attributes', function(el, prop, context) {
-        return function(attibutes) {
+        return function(attributes) {
             if (isObject(attributes)) {
                 each(attributes, function(value, key) {
                     el.setAttribute(key, value);
