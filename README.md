@@ -433,4 +433,4 @@ use `context.clicked = function(event){ window.alert('clicked!') }` in your cont
 * make css framework.
 * make components like dropdown, table, toggle button, etc.
 
-## Interested developers can join hands to make thebhaskaraui better.
+## Interested developers can join hands to make pakkajs better.
